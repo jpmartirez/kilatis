@@ -27,19 +27,22 @@ export const LoginPanel = () => {
 
     try {
       const data = await loginUser(username, password);
-      // Store token and user metadata
+      // Store token and user metadata in localStorage & cookies for middleware route protection
       localStorage.setItem("token", data.access_token);
       localStorage.setItem("user", JSON.stringify(data.user));
+
+      document.cookie = `auth_token=${data.access_token}; path=/; max-age=86400; SameSite=Lax`;
+      document.cookie = `user_role=${data.user.role}; path=/; max-age=86400; SameSite=Lax`;
 
       setSuccessMsg(`Welcome, ${data.user.username}! Redirecting...`);
       
       setTimeout(() => {
         if (data.user.role === "admin") {
-          router.push("/admin");
+          router.replace("/admin");
         } else {
-          router.push("/main");
+          router.replace("/main");
         }
-      }, 700);
+      }, 500);
     } catch (err: any) {
       setErrorMsg(err.message || "Invalid credentials. Please try again.");
     } finally {
