@@ -23,7 +23,11 @@ engine = create_engine(
 def init_db():
     # Import all models so SQLModel.metadata is populated
     from app.models import User  # noqa: F401
-    SQLModel.metadata.create_all(engine)
+    try:
+        SQLModel.metadata.create_all(engine)
+        print("Database tables initialized successfully.")
+    except Exception as e:
+        print(f"WARNING: Could not connect to database on startup ({e}). Will retry on API request.")
 
 def get_session():
     with Session(engine) as session:
