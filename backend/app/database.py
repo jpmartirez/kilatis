@@ -1,14 +1,12 @@
 from sqlmodel import create_engine, SQLModel, Session
 from app.config import settings
 
-# Fix postgres:// or postgresql:// URL prefix to use psycopg v3 dialect for Neon
 db_url = settings.DATABASE_URL
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql+psycopg://", 1)
 elif db_url.startswith("postgresql://") and not db_url.startswith("postgresql+"):
     db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
 
-# SQLite fallback compatibility for quick testing without live DB credentials
 connect_args = {}
 if "sqlite" in db_url:
     connect_args = {"check_same_thread": False}

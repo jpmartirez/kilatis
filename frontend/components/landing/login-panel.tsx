@@ -3,9 +3,9 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { TriangleAlert, LogIn, Lock, Eye, EyeOff, UserPlus, CheckCircle2 } from "lucide-react";
+import { TriangleAlert, LogIn, Lock, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { loginUser, seedInitialAdmin } from "@/lib/api";
+import { loginUser } from "@/lib/api";
 
 export const LoginPanel = () => {
   const router = useRouter();
@@ -15,9 +15,6 @@ export const LoginPanel = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-  const [showSeedModal, setShowSeedModal] = useState(false);
-  const [seedUser, setSeedUser] = useState("");
-  const [seedPass, setSeedPass] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,25 +47,6 @@ export const LoginPanel = () => {
     }
   };
 
-  const handleSeedAdmin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMsg(null);
-    setSuccessMsg(null);
-    setIsLoading(true);
-
-    try {
-      await seedInitialAdmin(seedUser, seedPass);
-      setSuccessMsg(`Admin account "${seedUser}" created successfully! You can now log in.`);
-      setUsername(seedUser);
-      setPassword(seedPass);
-      setShowSeedModal(false);
-    } catch (err: any) {
-      setErrorMsg(err.message || "Failed to create seed admin");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <section className="bg-[#e4ebf3] rounded-[2rem] p-5 sm:p-6 lg:p-6 flex flex-col justify-between shadow-xl border border-slate-200/50 h-full lg:min-h-0 lg:overflow-hidden gap-4 lg:gap-3">
       {/* 1. Authorized Personnel Warning Banner */}
@@ -85,57 +63,8 @@ export const LoginPanel = () => {
             LOGIN
           </h2>
         </div>
-        <button
-          type="button"
-          onClick={() => setShowSeedModal(!showSeedModal)}
-          className="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1 bg-white/60 hover:bg-white px-2.5 py-1 rounded-lg border border-slate-300/60 transition-all cursor-pointer"
-        >
-          <UserPlus className="w-3.5 h-3.5" />
-          <span>Seed Admin</span>
-        </button>
       </div>
 
-      {/* Seed Admin Drawer / Inline Form */}
-      {showSeedModal && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 shrink-0 space-y-3">
-          <div className="flex justify-between items-center">
-            <h4 className="text-xs font-black uppercase text-amber-900 tracking-wide">
-              Initialize First Admin Account
-            </h4>
-            <button
-              onClick={() => setShowSeedModal(false)}
-              className="text-amber-700 text-xs font-bold"
-            >
-              Close
-            </button>
-          </div>
-          <form onSubmit={handleSeedAdmin} className="space-y-2">
-            <Input
-              type="text"
-              placeholder="Admin Username"
-              value={seedUser}
-              onChange={(e) => setSeedUser(e.target.value)}
-              className="bg-white border-amber-300 h-9 text-xs"
-              required
-            />
-            <Input
-              type="password"
-              placeholder="Admin Password"
-              value={seedPass}
-              onChange={(e) => setSeedPass(e.target.value)}
-              className="bg-white border-amber-300 h-9 text-xs"
-              required
-            />
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-amber-800 hover:bg-amber-900 text-white rounded-lg py-1.5 text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
-            >
-              Create Root Admin
-            </button>
-          </form>
-        </div>
-      )}
 
       {/* 3. Main Login Credentials Box */}
       <div className="bg-[#ecf2f8] rounded-2xl p-5 sm:p-6 lg:p-6 border border-slate-200/90 shadow-sm flex-1 lg:min-h-0 flex flex-col justify-center">
