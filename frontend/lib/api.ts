@@ -75,17 +75,3 @@ export async function getMyInvestigators(token: string): Promise<User[]> {
   return res.json();
 }
 
-export async function seedInitialAdmin(username: string, password: string): Promise<User> {
-  const res = await fetch(`${API_BASE_URL}/api/auth/seed-admin`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password, role: "admin" }),
-  });
-
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({ detail: "Seed admin failed" }));
-    throw new Error(errorData.detail || "Failed to seed admin account");
-  }
-
-  return res.json();
-}

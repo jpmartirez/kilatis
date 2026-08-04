@@ -14,10 +14,7 @@ def create_investigator(
     current_admin: User = Depends(get_current_admin),
     session: Session = Depends(get_session)
 ):
-    """
-    Admin-only endpoint: Creates an investigator account assigned under the logged-in admin team.
-    Stores created_by_id linking to the creating Admin for tracking history.
-    """
+   
     # Check if username is already taken
     existing_user = session.exec(select(User).where(User.username == payload.username)).first()
     if existing_user:
