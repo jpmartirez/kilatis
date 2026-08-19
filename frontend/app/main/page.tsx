@@ -3,16 +3,38 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, Loader2 } from "lucide-react";
+import { Loader2, ArrowUpCircle } from "lucide-react";
+import { getCurrentUser } from "@/lib/api";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { CaseDetailsSection } from "@/components/dashboard/case-details-section";
+import { UploadEvidenceSection } from "@/components/dashboard/upload-evidence-section";
+import { AcknowledgementSection } from "@/components/dashboard/acknowledgement-section";
+import { SubmissionSuccessModal } from "@/components/dashboard/submission-success-modal";
 
 export default function MainPage() {
   const router = useRouter();
-  const [user, setUser] = useState<{ username: string; role: string } | null>(null);
+
+  // Authentication & DB User State
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [investigatorUsername, setInvestigatorUsername] = useState<string>("");
+
+  // Form Fields (All Required)
+  const [caseNumber, setCaseNumber] = useState("");
+  const [caseTitle, setCaseTitle] = useState("");
+  const [investigatorName, setInvestigatorName] = useState("");
+  const [caseNotes, setCaseNotes] = useState("");
+  const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [ackForensicStandards, setAckForensicStandards] = useState(false);
+  const [ackSubmissionLog, setAckSubmissionLog] = useState(false);
+
+  // Submission State
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
     const token = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
 
     if (!token || !storedUser) {
       document.cookie = "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
@@ -21,17 +43,37 @@ export default function MainPage() {
       return;
     }
 
-    try {
-      const parsed = JSON.parse(storedUser);
-      setUser(parsed);
-      setIsCheckingAuth(false);
-    } catch {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      document.cookie = "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-      document.cookie = "user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-      router.replace("/");
-    }
+    // Fetch fresh user data directly from Neon PostgreSQL Database via /api/auth/me
+    const fetchUserData = async () => {
+      try {
+        const dbUser = await getCurrentUser(token);
+        const formattedName = dbUser.username.toUpperCase().startsWith("PLT ")
+          ? dbUser.username.toUpperCase()
+          : `PLT ${dbUser.username.toUpperCase()}`;
+
+        setInvestigatorUsername(formattedName);
+        setInvestigatorName(formattedName);
+        setIsCheckingAuth(false);
+      } catch (err) {
+        console.error("Failed to fetch fresh user from database:", err);
+        // Fallback to local storage if network glitch, else clear
+        try {
+          const parsed = JSON.parse(storedUser);
+          const formattedName = parsed.username.toUpperCase().startsWith("PLT ")
+            ? parsed.username.toUpperCase()
+            : `PLT ${parsed.username.toUpperCase()}`;
+          setInvestigatorUsername(formattedName);
+          setInvestigatorName(formattedName);
+          setIsCheckingAuth(false);
+        } catch {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          router.replace("/");
+        }
+      }
+    };
+
+    fetchUserData();
   }, [router]);
 
   const handleLogout = () => {
@@ -42,48 +84,131 @@ export default function MainPage() {
     router.replace("/");
   };
 
+  // Validation: ALL fields are required
+  const isFormValid =
+    caseNumber.trim().length > 0 &&
+    caseTitle.trim().length > 0 &&
+    investigatorName.trim().length > 0 &&
+    caseNotes.trim().length > 0 &&
+    evidenceFile !== null &&
+    ackForensicStandards &&
+    ackSubmissionLog;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isFormValid || isSubmitting) return;
+
+    setIsSubmitting(true);
+
+    // Simulate forensic analysis initialization submission
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setShowSuccessModal(true);
+    }, 800);
+  };
+
+  const handleResetForm = () => {
+    setShowSuccessModal(false);
+    setCaseNumber("");
+    setCaseTitle("");
+    setCaseNotes("");
+    setEvidenceFile(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+    setAckForensicStandards(false);
+    setAckSubmissionLog(false);
+  };
+
   if (isCheckingAuth) {
     return (
-      <div className="min-h-screen w-full bg-white flex items-center justify-center font-sans text-neutral-600">
-        <div className="flex items-center gap-2.5 px-4 py-2 border border-neutral-200 rounded">
-          <Loader2 className="w-4 h-4 animate-spin text-neutral-800" />
-          <span className="text-xs font-medium uppercase tracking-wider">Verifying Authorization...</span>
+      <div className="min-h-screen w-full bg-[#edf2f7] flex items-center justify-center font-sans text-slate-700">
+        <div className="flex items-center gap-3 bg-white/90 backdrop-blur-md px-6 py-4 rounded-2xl shadow-md border border-slate-200">
+          <Loader2 className="w-5 h-5 animate-spin text-slate-900" />
+          <span className="text-xs font-bold uppercase tracking-wider">
+            Loading Investigator Session...
+          </span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex flex-col font-sans text-neutral-800">
-      {/* Simple Minimalist Navbar */}
-      <header className="relative bg-white border-b border-neutral-200 px-6 py-3.5 flex items-center justify-between">
-        <div className="text-xs text-neutral-500 font-medium">
-          {user?.username ? `User: ${user.username}` : ""}
-        </div>
+    <div className="min-h-screen w-full bg-[#edf2f7] text-slate-800 font-sans selection:bg-slate-800 selection:text-white py-6 sm:py-8 lg:py-10 px-4 sm:px-6 lg:px-8 overflow-y-auto">
+      <div className="max-w-4xl mx-auto space-y-5 sm:space-y-6">
+        {/* Top Header Row with Title and Active Session from Neon DB */}
+        <DashboardHeader
+          investigatorName={investigatorUsername}
+          onLogout={handleLogout}
+        />
 
-        {/* Center Text */}
-        <h1 className="absolute left-1/2 -translate-x-1/2 text-sm font-semibold tracking-wide text-neutral-900">
-          Main Page
-        </h1>
-
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-600 hover:text-neutral-900 border border-neutral-200 hover:border-neutral-300 rounded transition-colors cursor-pointer"
+        {/* Main Dashboard Container */}
+        <form
+          onSubmit={handleSubmit}
+          className="bg-[#e4ebf3] rounded-3xl sm:rounded-[2.5rem] p-5 sm:p-8 lg:p-10 border border-slate-300/80 shadow-md space-y-6 sm:space-y-8"
         >
-          <LogOut className="w-3.5 h-3.5" />
-          <span>Logout</span>
-        </button>
-      </header>
+          {/* Step 1: Case Details */}
+          <CaseDetailsSection
+            caseNumber={caseNumber}
+            setCaseNumber={setCaseNumber}
+            caseTitle={caseTitle}
+            setCaseTitle={setCaseTitle}
+            investigatorName={investigatorName}
+            setInvestigatorName={setInvestigatorName}
+            caseNotes={caseNotes}
+            setCaseNotes={setCaseNotes}
+          />
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex items-center justify-center p-6">
-        <div className="bg-white p-8 border border-neutral-200 rounded-lg max-w-md w-full text-center">
-          <h2 className="text-lg font-semibold text-neutral-900 mb-1">Main Page</h2>
-          <p className="text-xs text-neutral-500">
-            Investigator Portal
-          </p>
-        </div>
-      </main>
+          {/* Step 2: Upload Evidence */}
+          <UploadEvidenceSection
+            evidenceFile={evidenceFile}
+            setEvidenceFile={setEvidenceFile}
+            previewUrl={previewUrl}
+            setPreviewUrl={setPreviewUrl}
+          />
+
+          {/* Step 3: Acknowledgement */}
+          <AcknowledgementSection
+            ackForensicStandards={ackForensicStandards}
+            setAckForensicStandards={setAckForensicStandards}
+            ackSubmissionLog={ackSubmissionLog}
+            setAckSubmissionLog={setAckSubmissionLog}
+          />
+
+          {/* Submit Button */}
+          <div className="pt-2">
+            <button
+              type="submit"
+              disabled={!isFormValid || isSubmitting}
+              className="w-full bg-[#1b232b] hover:bg-[#2b3744] text-white rounded-full py-4 px-6 font-black tracking-widest text-xs sm:text-sm uppercase flex items-center justify-center gap-2.5 transition-all shadow-md active:scale-[0.99] disabled:opacity-35 disabled:cursor-not-allowed cursor-pointer"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  <span>INITIALIZING EVIDENCE...</span>
+                </>
+              ) : (
+                <>
+                  <ArrowUpCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white stroke-[2.2]" />
+                  <span>SUBMIT FOR ANALYSIS</span>
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Submission Success Modal */}
+      <SubmissionSuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        caseNumber={caseNumber}
+        caseTitle={caseTitle}
+        investigatorName={investigatorName}
+        fileName={evidenceFile?.name || "evidence_image.png"}
+        onReset={handleResetForm}
+      />
     </div>
   );
 }
