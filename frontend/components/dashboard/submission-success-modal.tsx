@@ -9,7 +9,8 @@ interface SubmissionSuccessModalProps {
   caseNumber: string;
   caseTitle: string;
   investigatorName: string;
-  fileName: string;
+  totalImages: number;
+  sampleFileName: string;
   onReset: () => void;
 }
 
@@ -19,7 +20,8 @@ export const SubmissionSuccessModal: React.FC<SubmissionSuccessModalProps> = ({
   caseNumber,
   caseTitle,
   investigatorName,
-  fileName,
+  totalImages,
+  sampleFileName,
   onReset,
 }) => {
   if (!isOpen) return null;
@@ -36,7 +38,7 @@ export const SubmissionSuccessModal: React.FC<SubmissionSuccessModalProps> = ({
             EVIDENCE INITIALIZED
           </h3>
           <p className="text-xs text-slate-500 font-medium">
-            The case file and questioned evidence have been registered for tri-stream forensic analysis.
+            The case file and {totalImages} questioned {totalImages === 1 ? "evidence image has" : "evidence images have"} been registered for tri-stream forensic analysis.
           </p>
         </div>
 
@@ -62,9 +64,11 @@ export const SubmissionSuccessModal: React.FC<SubmissionSuccessModalProps> = ({
           </div>
           <div className="flex justify-between items-center">
             <span className="text-slate-500 font-bold uppercase tracking-wider text-[11px]">
-              Evidence File
+              Evidence Images
             </span>
-            <span className="font-mono font-bold text-slate-900 truncate max-w-50">{fileName}</span>
+            <span className="font-mono font-bold text-slate-900 truncate max-w-50">
+              {totalImages === 1 ? sampleFileName : `${totalImages} Images (e.g. ${sampleFileName})`}
+            </span>
           </div>
         </div>
 

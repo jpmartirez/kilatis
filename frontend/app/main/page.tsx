@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/set-state-in-effect */
+
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -7,7 +7,10 @@ import { Loader2, ArrowUpCircle } from "lucide-react";
 import { getCurrentUser } from "@/lib/api";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { CaseDetailsSection } from "@/components/dashboard/case-details-section";
-import { UploadEvidenceSection } from "@/components/dashboard/upload-evidence-section";
+import {
+  UploadEvidenceSection,
+  EvidenceItem,
+} from "@/components/dashboard/upload-evidence-section";
 import { AcknowledgementSection } from "@/components/dashboard/acknowledgement-section";
 import { SubmissionSuccessModal } from "@/components/dashboard/submission-success-modal";
 
@@ -23,8 +26,7 @@ export default function MainPage() {
   const [caseTitle, setCaseTitle] = useState("");
   const [investigatorName, setInvestigatorName] = useState("");
   const [caseNotes, setCaseNotes] = useState("");
-  const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [evidenceFiles, setEvidenceFiles] = useState<EvidenceItem[]>([]);
   const [ackForensicStandards, setAckForensicStandards] = useState(false);
   const [ackSubmissionLog, setAckSubmissionLog] = useState(false);
 
@@ -90,7 +92,7 @@ export default function MainPage() {
     caseTitle.trim().length > 0 &&
     investigatorName.trim().length > 0 &&
     caseNotes.trim().length > 0 &&
-    evidenceFile !== null &&
+    evidenceFiles.length > 0 &&
     ackForensicStandards &&
     ackSubmissionLog;
 
@@ -112,11 +114,10 @@ export default function MainPage() {
     setCaseNumber("");
     setCaseTitle("");
     setCaseNotes("");
-    setEvidenceFile(null);
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-      setPreviewUrl(null);
-    }
+    evidenceFiles.forEach((item) => {
+      if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+    });
+    setEvidenceFiles([]);
     setAckForensicStandards(false);
     setAckSubmissionLog(false);
   };
@@ -160,12 +161,10 @@ export default function MainPage() {
             setCaseNotes={setCaseNotes}
           />
 
-          {/* Step 2: Upload Evidence */}
+          {/* Step 2: Upload Evidence (Multi-image & Folder Upload) */}
           <UploadEvidenceSection
-            evidenceFile={evidenceFile}
-            setEvidenceFile={setEvidenceFile}
-            previewUrl={previewUrl}
-            setPreviewUrl={setPreviewUrl}
+            evidenceFiles={evidenceFiles}
+            setEvidenceFiles={setEvidenceFiles}
           />
 
           {/* Step 3: Acknowledgement */}
@@ -191,7 +190,14 @@ export default function MainPage() {
               ) : (
                 <>
                   <ArrowUpCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white stroke-[2.2]" />
-                  <span>SUBMIT FOR ANALYSIS</span>
+                  <span>
+                    SUBMIT FOR ANALYSIS{" "}
+                    {evidenceFiles.length > 0
+                      ? `(${evidenceFiles.length} ${
+                          evidenceFiles.length === 1 ? "IMAGE" : "IMAGES"
+                        })`
+                      : ""}
+                  </span>
                 </>
               )}
             </button>
@@ -206,7 +212,8 @@ export default function MainPage() {
         caseNumber={caseNumber}
         caseTitle={caseTitle}
         investigatorName={investigatorName}
-        fileName={evidenceFile?.name || "evidence_image.png"}
+        totalImages={evidenceFiles.length}
+        sampleFileName={evidenceFiles[0]?.file.name || "evidence_image.png"}
         onReset={handleResetForm}
       />
     </div>
