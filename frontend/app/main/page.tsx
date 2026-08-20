@@ -1,10 +1,9 @@
-
 "use client";
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, ArrowUpCircle } from "lucide-react";
-import { getCurrentUser } from "@/lib/api";
+import { getCurrentUser, analyzeEvidenceImages, BatchDetectionResponse } from "@/lib/api";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { CaseDetailsSection } from "@/components/dashboard/case-details-section";
 import {
@@ -12,7 +11,7 @@ import {
   EvidenceItem,
 } from "@/components/dashboard/upload-evidence-section";
 import { AcknowledgementSection } from "@/components/dashboard/acknowledgement-section";
-import { SubmissionSuccessModal } from "@/components/dashboard/submission-success-modal";
+import { DetectionResultsModal } from "@/components/dashboard/detection-results-modal";
 
 export default function MainPage() {
   const router = useRouter();
@@ -30,9 +29,10 @@ export default function MainPage() {
   const [ackForensicStandards, setAckForensicStandards] = useState(false);
   const [ackSubmissionLog, setAckSubmissionLog] = useState(false);
 
-  // Submission State
+  // Analysis & Submission State
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [analysisResults, setAnalysisResults] = useState<BatchDetectionResponse | null>(null);
+  const [showResultsModal, setShowResultsModal] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -58,7 +58,6 @@ export default function MainPage() {
         setIsCheckingAuth(false);
       } catch (err) {
         console.error("Failed to fetch fresh user from database:", err);
-        // Fallback to local storage if network glitch, else clear
         try {
           const parsed = JSON.parse(storedUser);
           const formattedName = parsed.username.toUpperCase().startsWith("PLT ")
@@ -96,21 +95,34 @@ export default function MainPage() {
     ackForensicStandards &&
     ackSubmissionLog;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFormValid || isSubmitting) return;
 
     setIsSubmitting(true);
 
-    // Simulate forensic analysis initialization submission
-    setTimeout(() => {
+    try {
+      const filesToUpload = evidenceFiles.map((item) => item.file);
+      const res = await analyzeEvidenceImages(filesToUpload, {
+        caseNumber,
+        caseTitle,
+        investigatorName,
+        caseNotes,
+      });
+
+      setAnalysisResults(res);
+      setShowResultsModal(true);
+    } catch (err) {
+      console.error("Error running AI detection analysis:", err);
+      alert("Analysis failed. Please ensure the backend is running.");
+    } finally {
       setIsSubmitting(false);
-      setShowSuccessModal(true);
-    }, 800);
+    }
   };
 
   const handleResetForm = () => {
-    setShowSuccessModal(false);
+    setShowResultsModal(false);
+    setAnalysisResults(null);
     setCaseNumber("");
     setCaseTitle("");
     setCaseNotes("");
@@ -185,7 +197,7 @@ export default function MainPage() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin text-white" />
-                  <span>INITIALIZING EVIDENCE...</span>
+                  <span>ANALYZING EVIDENCE WITH KILATIS AI...</span>
                 </>
               ) : (
                 <>
@@ -205,16 +217,12 @@ export default function MainPage() {
         </form>
       </div>
 
-      {/* Submission Success Modal */}
-      <SubmissionSuccessModal
-        isOpen={showSuccessModal}
-        onClose={() => setShowSuccessModal(false)}
-        caseNumber={caseNumber}
-        caseTitle={caseTitle}
-        investigatorName={investigatorName}
-        totalImages={evidenceFiles.length}
-        sampleFileName={evidenceFiles[0]?.file.name || "evidence_image.png"}
+      {/* Detection Results Modal */}
+      <DetectionResultsModal
+        isOpen={showResultsModal}
+        onClose={() => setShowResultsModal(false)}
         onReset={handleResetForm}
+        data={analysisResults}
       />
     </div>
   );

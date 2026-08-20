@@ -14,6 +14,32 @@ export interface TokenResponse {
   user: User;
 }
 
+export interface ImageAnalysisResult {
+  filename: string;
+  verdict: "AUTHENTIC" | "AI-GENERATED";
+  classification: "AUTHENTIC" | "AI-GENERATED" | "DEEPFAKE";
+  p_tile: number;
+  p_face: number | null;
+  has_face: boolean;
+  tiles_analyzed: number;
+  face_tiles_analyzed: number;
+  status: string;
+  error?: string | null;
+}
+
+export interface BatchDetectionResponse {
+  case_number?: string | null;
+  case_title?: string | null;
+  investigator?: string | null;
+  total_images: number;
+  ai_generated_count: number;
+  deepfake_count: number;
+  authentic_count: number;
+  threshold_used: number;
+  model_status: string;
+  results: ImageAnalysisResult[];
+}
+
 export async function loginUser(username: string, password: string): Promise<TokenResponse> {
   const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
     method: "POST",
@@ -75,3 +101,33 @@ export async function getMyInvestigators(token: string): Promise<User[]> {
   return res.json();
 }
 
+export async function analyzeEvidenceImages(
+  files: File[],
+  metadata: {
+    caseNumber?: string;
+    caseTitle?: string;
+    investigatorName?: string;
+    caseNotes?: string;
+  }
+): Promise<BatchDetectionResponse> {
+  const formData = new FormData();
+  files.forEach((file) => {
+    formData.append("files", file);
+  });
+  if (metadata.caseNumber) formData.append("case_number", metadata.caseNumber);
+  if (metadata.caseTitle) formData.append("case_title", metadata.caseTitle);
+  if (metadata.investigatorName) formData.append("investigator_name", metadata.investigatorName);
+  if (metadata.caseNotes) formData.append("case_notes", metadata.caseNotes);
+
+  const res = await fetch(`${API_BASE_URL}/api/detection/analyze`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ detail: "Analysis failed" }));
+    throw new Error(errorData.detail || "Analysis request failed");
+  }
+
+  return res.json();
+}

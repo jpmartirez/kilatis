@@ -14,4 +14,13 @@ dependencies = [
     "bcrypt>=4.0.0",
     "python-dotenv>=1.0.0",
     "reportlab>=5.0.0",
+    "torch>=2.13.0",
+    "torchvision>=0.28.0",
+    "timm>=1.0.28",
+    "pywavelets>=1.9.0",
+    "scipy>=1.18.0",
+    "opencv-python>=5.0.0.93",
+    "pillow>=12.3.0",
+    "numpy>=2.5.2",
+    "python-multipart>=0.0.32",
 ]

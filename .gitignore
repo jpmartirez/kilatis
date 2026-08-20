@@ -17,6 +17,7 @@ __pycache__/
 .coverage
 .coverage.*
 htmlcov/
+ai-context/
 
 # Type checkers
 .mypy_cache/
@@ -38,3 +39,6 @@ dist/
 
 # Logs
 *.log
+
+# Weights
+*.pt

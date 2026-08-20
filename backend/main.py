@@ -2,17 +2,20 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import init_db
-from app.routers import auth_router, users_router
+from app.routers import auth_router, users_router, detection_router
+from app.ai.detector import get_detector
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Initialize DB tables on startup if not existing
     init_db()
+    # Initialize AI Detector
+    get_detector()
     yield
 
 app = FastAPI(
     title="Kilatis API",
-    description="Backend API for User Auth, Admin & Investigator Management with Neon PostgreSQL",
+    description="Backend API for User Auth, Forensic Case Management & AI Deepfake Detection",
     version="1.0.0",
     lifespan=lifespan
 )
@@ -28,6 +31,7 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(users_router)
+app.include_router(detection_router)
 
 @app.get("/")
 def read_root():
