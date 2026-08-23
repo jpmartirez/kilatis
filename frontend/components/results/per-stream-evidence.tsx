@@ -41,7 +41,7 @@ export const PerStreamEvidence: React.FC<PerStreamEvidenceProps> = ({
           {/* Spatial Metric */}
           <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs space-y-1">
             <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">
-              SPATIAL
+              SPATIAL (RGB + Laplacian)
             </span>
             <span className="text-2xl font-black text-slate-900 block font-mono">
               {spatialPct}%
@@ -54,7 +54,7 @@ export const PerStreamEvidence: React.FC<PerStreamEvidenceProps> = ({
           {/* Noise / Splice Metric */}
           <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs space-y-1">
             <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">
-              NOISE (PRNU)
+              NOISE / SPLICE (Noiseprint)
             </span>
             <span className="text-2xl font-black text-slate-900 block font-mono">
               {noisePct}%
