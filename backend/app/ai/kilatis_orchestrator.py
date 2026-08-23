@@ -21,6 +21,8 @@ from app.ai import kilatis_decision as kd
 from app.ai.schemas import (
     ImageAnalysisResult,
     DetectionScores,
+    StreamEvidence,
+    ClassProbabilities,
     AxisDetail,
 )
 
@@ -139,30 +141,43 @@ class KilatisOrchestrator:
         return [a[y:y + tile, x:x + tile, :] for y in ys for x in xs]
 
     @torch.no_grad()
-    def _run_b1_score(self, img_pil: Image.Image) -> Tuple[float, int]:
+    def _run_b1_score(self, img_pil: Image.Image) -> Tuple[float, float, float, float, int]:
         m = self._load_b1()
         if m is None:
-            return 0.05, 0
+            return 0.05, 0.05, 0.05, 0.05, 0
 
         from branch2_data import _spatial, _frequency, _wavelet, SIZE
         a = np.ascontiguousarray(np.array(img_pil, dtype=np.uint8))
         tiles = self._b1_tiles(a, SIZE)
-        ps = []
+        ps, ps_s, ps_f, ps_w = [], [], [], []
+
         for i in range(0, len(tiles), 32):
             b = tiles[i:i + 32]
             s = torch.stack([torch.from_numpy(_spatial(t)) for t in b]).to(self.device)
             f = torch.stack([torch.from_numpy(_frequency(t)) for t in b]).to(self.device)
             w = torch.stack([torch.from_numpy(_wavelet(t)) for t in b]).to(self.device)
             out = m(s, f, w)
+
             ps.append(torch.softmax(out["main"], 1)[:, 1].cpu().numpy())
+            if "aux_s" in out:
+                ps_s.append(torch.softmax(out["aux_s"], 1)[:, 1].cpu().numpy())
+            if "aux_f" in out:
+                ps_f.append(torch.softmax(out["aux_f"], 1)[:, 1].cpu().numpy())
+            if "aux_w" in out:
+                ps_w.append(torch.softmax(out["aux_w"], 1)[:, 1].cpu().numpy())
+
         p = np.concatenate(ps)
-        return float(p.mean()), len(tiles)
+        p_s = np.concatenate(ps_s) if ps_s else p
+        p_f = np.concatenate(ps_f) if ps_f else p
+        p_w = np.concatenate(ps_w) if ps_w else p
+
+        return float(p.mean()), float(p_s.mean()), float(p_f.mean()), float(p_w.mean()), len(tiles)
 
     @torch.no_grad()
-    def _run_b2_score(self, temp_image_path: str) -> Tuple[float, Optional[np.ndarray]]:
+    def _run_b2_score(self, temp_image_path: str) -> Tuple[float, float, Optional[np.ndarray]]:
         m = self._load_b2()
         if m is None:
-            return 0.05, None
+            return 0.05, 0.05, None
 
         import json
         import tempfile
@@ -186,7 +201,8 @@ class KilatisOrchestrator:
             o, c, d, n = out
             p_splice = float(torch.sigmoid(d.reshape(-1)[0]).item())
             mask = torch.softmax(o, 1)[:, -1][0].cpu().numpy()
-            return p_splice, mask
+            noise_inconsistency = float(torch.std(n).item()) if n is not None else p_splice
+            return p_splice, noise_inconsistency, mask
         finally:
             if os.path.exists(json_path):
                 os.remove(json_path)
@@ -199,11 +215,17 @@ class KilatisOrchestrator:
             q = kd.input_quality(temp_image_path)
             orig_img = ImageOps.exif_transpose(Image.open(temp_image_path).convert("RGB"))
 
-            # Branch 1: AI / Deepfake
-            p_ai = self._run_b1_score(orig_img)[0] if q.ai_ok else 0.0
+            # Branch 1: AI / Deepfake (with Spatial, Frequency, Wavelet auxiliary streams)
+            if q.ai_ok:
+                p_ai, p_spatial, p_frequency, p_wavelet, _ = self._run_b1_score(orig_img)
+            else:
+                p_ai, p_spatial, p_frequency, p_wavelet = 0.0, 0.0, 0.0, 0.0
 
-            # Branch 2: Splicing & Tamper Localization
-            p_spl, mask = self._run_b2_score(temp_image_path) if q.splice_ok else (0.0, None)
+            # Branch 2: Splicing & Tamper Localization (with Noiseprint consistency)
+            if q.splice_ok:
+                p_spl, noise_inconsistency, mask = self._run_b2_score(temp_image_path)
+            else:
+                p_spl, noise_inconsistency, mask = 0.0, 0.0, None
 
             # Decision Matrix Core
             has_mask = mask is not None and bool((mask > 0.5).any())
@@ -213,6 +235,15 @@ class KilatisOrchestrator:
             mask_b64 = None
             if (rep.verdict == "Spliced" or rep.verdict == "AI-generated + spliced") and mask is not None:
                 mask_b64 = generate_heatmap_base64(orig_img, mask)
+
+            # Compute 3 Canonical Class Probabilities (Authentic, Traditional Spliced, AI-Generated / Deepfake)
+            p_auth = max(0.0, min(1.0, 1.0 - max(p_ai, p_spl)))
+            if rep.verdict == "Authentic":
+                p_auth = max(p_auth, 0.90)
+            elif rep.verdict == "Spliced":
+                p_auth = min(p_auth, 0.15)
+            elif rep.verdict == "AI-generated / deepfake":
+                p_auth = min(p_auth, 0.10)
 
             dt = time.time() - t0
             print(f"[KILATIS AI] '{filename}' analyzed in {dt:.2f}s -> Verdict: {rep.verdict} | P(AI)={p_ai:.4f} | P(Splice)={p_spl:.4f}")
@@ -224,6 +255,18 @@ class KilatisOrchestrator:
                 scores=DetectionScores(
                     p_ai=round(p_ai, 4),
                     p_splice=round(p_spl, 4)
+                ),
+                streams=StreamEvidence(
+                    spatial_score=round(p_spatial, 4),
+                    frequency_score=round(p_frequency, 4),
+                    wavelet_score=round(p_wavelet, 4),
+                    noise_score=round(p_spl, 4),
+                    noise_inconsistency=round(noise_inconsistency, 4),
+                ),
+                class_probabilities=ClassProbabilities(
+                    authentic=round(p_auth, 4),
+                    traditional_spliced=round(p_spl, 4),
+                    ai_deepfake=round(p_ai, 4),
                 ),
                 ai_axis=AxisDetail(
                     state=rep.ai.state.value if hasattr(rep.ai.state, "value") else str(rep.ai.state),
@@ -256,6 +299,18 @@ class KilatisOrchestrator:
                 verdict="Manual review",
                 headline="Inference error encountered during analysis.",
                 scores=DetectionScores(p_ai=0.0, p_splice=0.0),
+                streams=StreamEvidence(
+                    spatial_score=0.0,
+                    frequency_score=0.0,
+                    wavelet_score=0.0,
+                    noise_score=0.0,
+                    noise_inconsistency=0.0,
+                ),
+                class_probabilities=ClassProbabilities(
+                    authentic=0.0,
+                    traditional_spliced=0.0,
+                    ai_deepfake=0.0,
+                ),
                 ai_axis=AxisDetail(state="not-assessable", threshold=kd.AI_THR),
                 splice_axis=AxisDetail(state="not-assessable", threshold=kd.SPLICE_THR),
                 detail=[f"Error: {str(err)}"],

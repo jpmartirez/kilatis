@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, ArrowUpCircle } from "lucide-react";
 import { getCurrentUser, analyzeEvidenceImages, BatchDetectionResponse } from "@/lib/api";
+import { setStoredResults } from "@/lib/storage";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { CaseDetailsSection } from "@/components/dashboard/case-details-section";
 import {
@@ -11,7 +12,14 @@ import {
   EvidenceItem,
 } from "@/components/dashboard/upload-evidence-section";
 import { AcknowledgementSection } from "@/components/dashboard/acknowledgement-section";
-import { DetectionResultsModal } from "@/components/dashboard/detection-results-modal";
+
+const fileToDataUrl = (file: File): Promise<string> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.readAsDataURL(file);
+  });
+};
 
 export default function MainPage() {
   const router = useRouter();
@@ -31,8 +39,6 @@ export default function MainPage() {
 
   // Analysis & Submission State
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [analysisResults, setAnalysisResults] = useState<BatchDetectionResponse | null>(null);
-  const [showResultsModal, setShowResultsModal] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -80,6 +86,7 @@ export default function MainPage() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    sessionStorage.removeItem("kilatis_active_results");
     document.cookie = "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     document.cookie = "user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     router.replace("/");
@@ -103,35 +110,57 @@ export default function MainPage() {
 
     try {
       const filesToUpload = evidenceFiles.map((item) => item.file);
-      const res = await analyzeEvidenceImages(filesToUpload, {
+      const res: BatchDetectionResponse = await analyzeEvidenceImages(filesToUpload, {
         caseNumber,
         caseTitle,
         investigatorName,
         caseNotes,
       });
 
-      setAnalysisResults(res);
-      setShowResultsModal(true);
+      // Prepare items with data URLs so images persist when routed to /results
+      const itemsWithPreviews = await Promise.all(
+        res.results.map(async (resultItem, index) => {
+          const originalItem = evidenceFiles[index];
+          let dataUrl = "";
+          if (originalItem?.file) {
+            dataUrl = await fileToDataUrl(originalItem.file);
+          }
+          return {
+            result: resultItem,
+            previewUrl: dataUrl || originalItem?.previewUrl || "",
+            originalName: originalItem?.file?.name || resultItem.filename,
+            fileSize: originalItem?.file?.size,
+            fileType: originalItem?.file?.type,
+            dimensions: "1920 X 1080",
+          };
+        })
+      );
+
+      const payload = {
+        caseNumber,
+        caseTitle,
+        investigatorName: investigatorUsername || investigatorName,
+        caseNotes,
+        analyzedAt: new Date().toISOString(),
+        items: itemsWithPreviews,
+        summary: {
+          total: res.total_images,
+          authentic: res.authentic_count,
+          spliced: res.spliced_count,
+          ai: res.ai_generated_count,
+          aiSpliced: res.ai_spliced_count,
+          manual: res.manual_review_count,
+        },
+      };
+
+      await setStoredResults("kilatis_active_results", payload);
+      router.push("/results");
     } catch (err) {
       console.error("Error running AI detection analysis:", err);
       alert("Analysis failed. Please ensure the backend is running.");
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleResetForm = () => {
-    setShowResultsModal(false);
-    setAnalysisResults(null);
-    setCaseNumber("");
-    setCaseTitle("");
-    setCaseNotes("");
-    evidenceFiles.forEach((item) => {
-      if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
-    });
-    setEvidenceFiles([]);
-    setAckForensicStandards(false);
-    setAckSubmissionLog(false);
   };
 
   if (isCheckingAuth) {
@@ -216,14 +245,6 @@ export default function MainPage() {
           </div>
         </form>
       </div>
-
-      {/* Detection Results Modal */}
-      <DetectionResultsModal
-        isOpen={showResultsModal}
-        onClose={() => setShowResultsModal(false)}
-        onReset={handleResetForm}
-        data={analysisResults}
-      />
     </div>
   );
 }

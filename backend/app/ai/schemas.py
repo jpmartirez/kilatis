@@ -16,11 +16,27 @@ class DetectionScores(BaseModel):
     p_splice: float
 
 
+class StreamEvidence(BaseModel):
+    spatial_score: float
+    frequency_score: float
+    wavelet_score: float
+    noise_score: float
+    noise_inconsistency: float
+
+
+class ClassProbabilities(BaseModel):
+    authentic: float
+    traditional_spliced: float
+    ai_deepfake: float
+
+
 class ImageAnalysisResult(BaseModel):
     filename: str
     verdict: str
     headline: str
     scores: DetectionScores
+    streams: StreamEvidence
+    class_probabilities: ClassProbabilities
     ai_axis: AxisDetail
     splice_axis: AxisDetail
     detail: List[str]

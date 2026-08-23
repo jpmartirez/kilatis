@@ -28,11 +28,27 @@ export interface DetectionScores {
   p_splice: number;
 }
 
+export interface StreamEvidence {
+  spatial_score: number;
+  frequency_score: number;
+  wavelet_score: number;
+  noise_score: number;
+  noise_inconsistency: number;
+}
+
+export interface ClassProbabilities {
+  authentic: number;
+  traditional_spliced: number;
+  ai_deepfake: number;
+}
+
 export interface ImageAnalysisResult {
   filename: string;
   verdict: "Authentic" | "Spliced" | "AI-generated / deepfake" | "AI-generated + spliced" | "Manual review" | string;
   headline: string;
   scores: DetectionScores;
+  streams?: StreamEvidence;
+  class_probabilities?: ClassProbabilities;
   ai_axis: AxisDetail;
   splice_axis: AxisDetail;
   detail: string[];
