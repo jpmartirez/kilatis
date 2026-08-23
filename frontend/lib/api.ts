@@ -14,29 +14,41 @@ export interface TokenResponse {
   user: User;
 }
 
+export interface AxisDetail {
+  state: "positive" | "negative" | "not-assessable" | string;
+  tier?: "low" | "moderate" | "high" | null;
+  score?: number | null;
+  threshold: number;
+  demoted: boolean;
+  demote_reason: string;
+}
+
+export interface DetectionScores {
+  p_ai: number;
+  p_splice: number;
+}
+
 export interface ImageAnalysisResult {
   filename: string;
-  verdict: "AUTHENTIC" | "AI-GENERATED";
-  classification: "AUTHENTIC" | "AI-GENERATED" | "DEEPFAKE";
-  p_tile: number;
-  p_face: number | null;
-  has_face: boolean;
-  tiles_analyzed: number;
-  face_tiles_analyzed: number;
-  status: string;
+  verdict: "Authentic" | "Spliced" | "AI-generated / deepfake" | "AI-generated + spliced" | "Manual review" | string;
+  headline: string;
+  scores: DetectionScores;
+  ai_axis: AxisDetail;
+  splice_axis: AxisDetail;
+  detail: string[];
+  has_tamper_mask: boolean;
+  mask_base64?: string | null;
+  status: "success" | "error" | string;
   error?: string | null;
 }
 
 export interface BatchDetectionResponse {
-  case_number?: string | null;
-  case_title?: string | null;
-  investigator?: string | null;
   total_images: number;
-  ai_generated_count: number;
-  deepfake_count: number;
   authentic_count: number;
-  threshold_used: number;
-  model_status: string;
+  spliced_count: number;
+  ai_generated_count: number;
+  ai_spliced_count: number;
+  manual_review_count: number;
   results: ImageAnalysisResult[];
 }
 

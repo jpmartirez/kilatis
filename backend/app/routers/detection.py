@@ -1,9 +1,12 @@
+import os
+import tempfile
+import asyncio
 from typing import List, Optional
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, status
-from app.ai.detector import get_detector
+from app.ai.kilatis_orchestrator import get_orchestrator
 from app.ai.schemas import BatchDetectionResponse, ImageAnalysisResult
 
-router = APIRouter(prefix="/api/detection", tags=["AI Image Detection"])
+router = APIRouter(prefix="/api/detection", tags=["KILATIS Image Forensics"])
 
 
 @router.post("/analyze", response_model=BatchDetectionResponse)
@@ -15,8 +18,9 @@ async def analyze_images(
     case_notes: Optional[str] = Form(None),
 ):
     """
-    Receives batch evidence images, passes them through the KILATIS Tri-Stream
-    (Spatial + Frequency + Wavelet) AI Detector, and returns forensic verdicts.
+    Receives batch evidence images, runs them through the full KILATIS dual-branch
+    (AI Deepfake + TruFor Splicing Localization + Gated Decision Matrix) pipeline,
+    and returns comprehensive forensic findings and localization heatmaps.
     """
     if not files:
         raise HTTPException(
@@ -24,7 +28,7 @@ async def analyze_images(
             detail="No evidence images provided for analysis."
         )
 
-    detector = get_detector()
+    orchestrator = get_orchestrator()
     results: List[ImageAnalysisResult] = []
 
     for upload_file in files:
@@ -32,26 +36,39 @@ async def analyze_images(
         if not content:
             continue
 
-        result = detector.evaluate_image(
-            image_bytes=content,
-            filename=upload_file.filename or "unknown.png"
-        )
-        results.append(result)
+        filename = upload_file.filename or "evidence.png"
+        suffix = os.path.splitext(filename)[-1] or ".png"
+
+        # Write to temporary file for TruFor / OpenCV multi-branch processing
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            tmp.write(content)
+            tmp_path = tmp.name
+
+        try:
+            # Offload heavy synchronous PyTorch inference to threadpool
+            result = await asyncio.to_thread(
+                orchestrator.evaluate_image_file,
+                tmp_path,
+                filename
+            )
+            results.append(result)
+        finally:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
 
     total_images = len(results)
-    ai_generated_count = sum(1 for r in results if r.classification == "AI-GENERATED")
-    deepfake_count = sum(1 for r in results if r.classification == "DEEPFAKE")
-    authentic_count = sum(1 for r in results if r.classification == "AUTHENTIC")
+    authentic_count = sum(1 for r in results if r.verdict == "Authentic")
+    spliced_count = sum(1 for r in results if r.verdict == "Spliced")
+    ai_generated_count = sum(1 for r in results if r.verdict == "AI-generated / deepfake")
+    ai_spliced_count = sum(1 for r in results if r.verdict == "AI-generated + spliced")
+    manual_review_count = sum(1 for r in results if r.verdict == "Manual review")
 
     return BatchDetectionResponse(
-        case_number=case_number,
-        case_title=case_title,
-        investigator=investigator_name,
         total_images=total_images,
-        ai_generated_count=ai_generated_count,
-        deepfake_count=deepfake_count,
         authentic_count=authentic_count,
-        threshold_used=detector.threshold,
-        model_status="model_ready" if detector.is_ready else "fallback_dummy_mode",
+        spliced_count=spliced_count,
+        ai_generated_count=ai_generated_count,
+        ai_spliced_count=ai_spliced_count,
+        manual_review_count=manual_review_count,
         results=results,
     )

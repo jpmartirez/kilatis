@@ -1,28 +1,40 @@
-from typing import Optional, List
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+from typing import List, Optional
+
+
+class AxisDetail(BaseModel):
+    state: str
+    tier: Optional[str] = None
+    score: Optional[float] = None
+    threshold: float
+    demoted: bool = False
+    demote_reason: str = ""
+
+
+class DetectionScores(BaseModel):
+    p_ai: float
+    p_splice: float
 
 
 class ImageAnalysisResult(BaseModel):
     filename: str
-    verdict: str                  # "AUTHENTIC" | "AI-GENERATED"
-    classification: str           # "AUTHENTIC" | "AI-GENERATED" | "DEEPFAKE"
-    p_tile: float                 # Whole-image synthetic probability (0.0 to 1.0)
-    p_face: Optional[float] = None  # Face manipulation probability if face present
-    has_face: bool = False
-    tiles_analyzed: int = 0
-    face_tiles_analyzed: int = 0
+    verdict: str
+    headline: str
+    scores: DetectionScores
+    ai_axis: AxisDetail
+    splice_axis: AxisDetail
+    detail: List[str]
+    has_tamper_mask: bool
+    mask_base64: Optional[str] = None
     status: str = "success"
     error: Optional[str] = None
 
 
 class BatchDetectionResponse(BaseModel):
-    case_number: Optional[str] = None
-    case_title: Optional[str] = None
-    investigator: Optional[str] = None
     total_images: int
-    ai_generated_count: int
-    deepfake_count: int
     authentic_count: int
-    threshold_used: float
-    model_status: str             # "model_ready" | "fallback_dummy_mode"
+    spliced_count: int
+    ai_generated_count: int
+    ai_spliced_count: int
+    manual_review_count: int
     results: List[ImageAnalysisResult]
