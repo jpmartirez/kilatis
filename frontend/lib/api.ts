@@ -159,3 +159,131 @@ export async function analyzeEvidenceImages(
 
   return res.json();
 }
+
+// ----------------------------------------------------
+// History Sessions API
+// ----------------------------------------------------
+
+export interface HistorySessionItem {
+  id: string;
+  user_id: string;
+  case_number: string;
+  case_title: string;
+  verdicts: string[];
+  total_images: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HistoryResponse {
+  items: HistorySessionItem[];
+  total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
+}
+
+export interface HistoryFilters {
+  search?: string;
+  verdict?: string;
+  fromDate?: string;
+  toDate?: string;
+  page?: number;
+  limit?: number;
+}
+
+function getStoredAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return (
+    localStorage.getItem("token") ||
+    localStorage.getItem("kilatis_token") ||
+    localStorage.getItem("access_token")
+  );
+}
+
+export async function saveCaseSession(
+  payload: {
+    case_number: string;
+    case_title: string;
+    verdicts: string[];
+    total_images?: number;
+  },
+  token?: string
+): Promise<HistorySessionItem> {
+  const authToken = token || getStoredAuthToken();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (authToken) {
+    headers["Authorization"] = `Bearer ${authToken}`;
+  }
+
+  const res = await fetch(`${API_BASE_URL}/api/sessions/save`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      case_number: payload.case_number,
+      case_title: payload.case_title,
+      verdicts: payload.verdicts,
+      total_images: payload.total_images || 1,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Failed to save session" }));
+    throw new Error(err.detail || "Failed to save case session");
+  }
+
+  return res.json();
+}
+
+export async function getHistorySessions(
+  filters: HistoryFilters = {},
+  token?: string
+): Promise<HistoryResponse> {
+  const authToken = token || getStoredAuthToken();
+  const headers: Record<string, string> = {};
+  if (authToken) {
+    headers["Authorization"] = `Bearer ${authToken}`;
+  }
+
+  const params = new URLSearchParams();
+  if (filters.search) params.append("search", filters.search);
+  if (filters.verdict && filters.verdict !== "ALL") params.append("verdict", filters.verdict);
+  if (filters.fromDate) params.append("from_date", filters.fromDate);
+  if (filters.toDate) params.append("to_date", filters.toDate);
+  if (filters.page) params.append("page", filters.page.toString());
+  if (filters.limit) params.append("limit", filters.limit.toString());
+
+  const res = await fetch(`${API_BASE_URL}/api/sessions/history?${params.toString()}`, {
+    headers,
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Failed to fetch history" }));
+    throw new Error(err.detail || "Failed to fetch session history");
+  }
+
+  return res.json();
+}
+
+export async function deleteCaseSession(
+  sessionId: string,
+  token?: string
+): Promise<void> {
+  const authToken = token || getStoredAuthToken();
+  const headers: Record<string, string> = {};
+  if (authToken) {
+    headers["Authorization"] = `Bearer ${authToken}`;
+  }
+
+  const res = await fetch(`${API_BASE_URL}/api/sessions/${sessionId}`, {
+    method: "DELETE",
+    headers,
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Failed to delete session" }));
+    throw new Error(err.detail || "Failed to delete case session");
+  }
+}

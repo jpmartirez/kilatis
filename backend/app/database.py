@@ -20,7 +20,7 @@ engine = create_engine(
 
 def init_db():
     # Import all models so SQLModel.metadata is populated
-    from app.models import User  # noqa: F401
+    from app.models import User, CaseSession  # noqa: F401
     try:
         SQLModel.metadata.create_all(engine)
         print("Database tables initialized successfully.")

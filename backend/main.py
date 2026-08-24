@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import init_db
-from app.routers import auth_router, users_router, detection_router
+from app.routers import auth_router, users_router, detection_router, sessions_router
 from app.ai.kilatis_orchestrator import get_orchestrator
 
 @asynccontextmanager
@@ -33,6 +33,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(detection_router)
+app.include_router(sessions_router)
 
 @app.get("/")
 def read_root():

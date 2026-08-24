@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, ArrowUpCircle } from "lucide-react";
-import { getCurrentUser, analyzeEvidenceImages, BatchDetectionResponse } from "@/lib/api";
+import { getCurrentUser, analyzeEvidenceImages, saveCaseSession, BatchDetectionResponse } from "@/lib/api";
 import { setStoredResults } from "@/lib/storage";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { CaseDetailsSection } from "@/components/dashboard/case-details-section";
@@ -154,6 +154,15 @@ export default function MainPage() {
       };
 
       await setStoredResults("kilatis_active_results", payload);
+
+      // Persist session metadata to Neon database for History tracking
+      saveCaseSession({
+        case_number: caseNumber,
+        case_title: caseTitle,
+        verdicts: res.results.map((r) => r.verdict.toUpperCase()),
+        total_images: res.total_images,
+      }).catch((saveErr) => console.warn("Failed to persist case session to history:", saveErr));
+
       router.push("/results");
     } catch (err) {
       console.error("Error running AI detection analysis:", err);
