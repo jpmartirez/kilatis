@@ -283,9 +283,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 	const caseNumber = caseData.caseNumber || "KIL-0417-2026";
 	const caseTitle = caseData.caseTitle || "VERIFY SUSPECT IMAGE";
 	const investigatorName =
-		examinerName?.trim() ||
-		caseData.investigatorName?.trim() ||
-		"INVESTIGATOR";
+		examinerName?.trim() || caseData.investigatorName?.trim() || "INVESTIGATOR";
 	const items = caseData.items || [];
 
 	let dateAnalyzed = "2026-08-24 19:55 PST";
@@ -312,7 +310,6 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 			title={`Forensic_Analysis_Report_${caseNumber}`}
 			author="KILATIS Forensic System"
 		>
-		
 			{/* PAGE 1: OVERVIEW & CASE INTAKE NOTES                     */}
 			<Page size="A4" style={styles.page}>
 				<View style={{ flex: 1, display: "flex", flexDirection: "column" }}>
@@ -345,7 +342,9 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 								</View>
 								<View style={styles.col}>
 									<Text style={styles.labelSmall}>DATE ANALYZED</Text>
-									<Text style={styles.valueText}>{dateVal || dateAnalyzed}</Text>
+									<Text style={styles.valueText}>
+										{dateVal || dateAnalyzed}
+									</Text>
 								</View>
 							</View>
 							<View style={[styles.grid2Col, { marginTop: 6 }]}>
@@ -498,7 +497,6 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 				</View>
 			</Page>
 
-			
 			{/* PAGES 2 .. (N+1): 1 COMPLETE DEDICATED PAGE PER IMAGE     */}
 			{items.map((item: StoredResultItem, idx: number) => {
 				const result = item.result;
@@ -756,7 +754,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 												src={result.mask_base64}
 												style={styles.viewportImage}
 											/>
-											<Text style={styles.viewportLabel}>GRADCAM HEATMAP</Text>
+											<Text style={styles.viewportLabel}>HEATMAP</Text>
 										</View>
 									)}
 								</View>
@@ -1133,7 +1131,6 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 				);
 			})}
 
-
 			{/* LAST PAGE: EXAMINER'S NOTES, CERTIFICATION & DISCLAIMER   */}
 			<Page size="A4" style={styles.page}>
 				<View
@@ -1232,7 +1229,9 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 								<View style={styles.col}>
 									<Text style={styles.labelSmall}>DATE</Text>
 									<View style={styles.blankInputBox}>
-										<Text style={styles.inputText}>{dateVal || dateAnalyzed}</Text>
+										<Text style={styles.inputText}>
+											{dateVal || dateAnalyzed}
+										</Text>
 									</View>
 								</View>
 							</View>
