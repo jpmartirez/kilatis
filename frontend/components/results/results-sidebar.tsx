@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import { FileText } from "lucide-react";
 import { VerdictCard } from "./verdict-card";
 import { ClassProbabilityCard } from "./class-probability-card";
@@ -31,6 +32,16 @@ export const ResultsSidebar: React.FC<ResultsSidebarProps> = ({
   currentResult,
   onGenerateReport,
 }) => {
+  const router = useRouter();
+
+  const handleGenerateReport = () => {
+    if (onGenerateReport) {
+      onGenerateReport();
+    } else {
+      router.push("/report");
+    }
+  };
+
   return (
     <aside className="lg:col-span-4 space-y-3.5 sticky top-4">
       {/* 1. Verdict Card */}
@@ -53,11 +64,7 @@ export const ResultsSidebar: React.FC<ResultsSidebarProps> = ({
       <div className="pt-1">
         <button
           type="button"
-          onClick={
-            onGenerateReport ||
-            (() =>
-              alert("Generate Report functionality will be implemented in the next phase."))
-          }
+          onClick={handleGenerateReport}
           className="w-full bg-[#181f2a] hover:bg-[#2c3746] text-white rounded-full py-4 px-5 font-black tracking-widest text-xs uppercase flex items-center justify-center gap-2.5 transition-all shadow-md active:scale-[0.99] cursor-pointer"
         >
           <FileText className="w-4 h-4" />

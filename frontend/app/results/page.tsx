@@ -199,6 +199,7 @@ export default function ResultsPage() {
             caseNotes={data.caseNotes}
             currentItem={currentItem}
             currentResult={currentResult}
+            onGenerateReport={() => router.push("/report")}
           />
         </div>
       </div>
