@@ -219,12 +219,12 @@ const styles = StyleSheet.create({
 	blankInputBox: {
 		backgroundColor: "#f1f5f9",
 		borderRadius: 6,
-		height: 22,
-		paddingHorizontal: 7,
-		justifyContent: "center",
+		minHeight: 22,
+		paddingHorizontal: 8,
+		paddingVertical: 5,
 	},
 	inputText: {
-		fontSize: 8,
+		fontSize: 8.5,
 		fontFamily: "Helvetica-Bold",
 		color: "#0f172a",
 	},
@@ -282,11 +282,14 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 }) => {
 	const caseNumber = caseData.caseNumber || "KIL-0417-2026";
 	const caseTitle = caseData.caseTitle || "VERIFY SUSPECT IMAGE";
-	const investigatorName = examinerName || caseData.investigatorName || "INVESTIGATOR";
+	const investigatorName =
+		examinerName?.trim() ||
+		caseData.investigatorName?.trim() ||
+		"INVESTIGATOR";
 	const items = caseData.items || [];
 
-	let dateAnalyzed = "2026-07-18 14:32 PST";
-	let timestampShort = "07-18 · 14:32";
+	let dateAnalyzed = "2026-08-24 19:55 PST";
+	let timestampShort = "08-24 · 19:55";
 	if (caseData.analyzedAt) {
 		try {
 			const d = new Date(caseData.analyzedAt);
@@ -301,6 +304,8 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 			dateAnalyzed = caseData.analyzedAt;
 		}
 	}
+
+	const displayDate = dateVal?.trim() || dateAnalyzed;
 
 	return (
 		<Document
@@ -320,7 +325,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 						</Text>
 					</View>
 
-					{/* ① CASE INFORMATION */}
+					{/* CASE INFORMATION */}
 					<View style={styles.sectionCard}>
 						<View style={styles.sectionHeaderRow}>
 							<View style={styles.circleIcon}>
@@ -364,7 +369,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 						</View>
 					</View>
 
-					{/* ② CONFIDENCE, LIMITATIONS & CHAIN OF CUSTODY */}
+					{/* CONFIDENCE, LIMITATIONS & CHAIN OF CUSTODY */}
 					<View style={styles.sectionCard}>
 						<View style={styles.sectionHeaderRow}>
 							<View style={styles.circleIcon}>
