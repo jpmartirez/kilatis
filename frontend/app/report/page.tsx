@@ -90,7 +90,7 @@ export default function ReportPage() {
 		window.print();
 	};
 
-	// Download PDF Handler via @react-pdf/renderer
+	// Download PDF Handler via @react-pdf/renderer (with Native Tauri Save As Dialog & Browser fallback)
 	const handleDownloadPdf = async () => {
 		if (!caseData) return;
 		try {
@@ -106,10 +106,46 @@ export default function ReportPage() {
 			);
 			const asPdf = pdf(doc);
 			const blob = await asPdf.toBlob();
+			const defaultFilename = `Forensic_Report_${caseData.caseNumber || "KIL-0417-2026"}.pdf`;
+
+			// Check if running inside Tauri desktop environment
+			const isTauri =
+				typeof window !== "undefined" &&
+				Boolean(
+					(window as unknown as { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__ ||
+					(window as unknown as { __TAURI__?: unknown }).__TAURI__
+				);
+
+			if (isTauri) {
+				try {
+					const { save } = await import("@tauri-apps/plugin-dialog");
+					const { writeFile } = await import("@tauri-apps/plugin-fs");
+
+					const filePath = await save({
+						defaultPath: defaultFilename,
+						filters: [
+							{
+								name: "PDF Document (*.pdf)",
+								extensions: ["pdf"],
+							},
+						],
+					});
+
+					if (filePath) {
+						const arrayBuffer = await blob.arrayBuffer();
+						await writeFile(filePath, new Uint8Array(arrayBuffer));
+					}
+					return;
+				} catch (tauriErr) {
+					console.warn("Tauri native save dialog failed, falling back to browser download:", tauriErr);
+				}
+			}
+
+			// Web Browser download fallback
 			const url = URL.createObjectURL(blob);
 			const link = document.createElement("a");
 			link.href = url;
-			link.download = `Forensic_Report_${caseData.caseNumber || "KIL-0417-2026"}.pdf`;
+			link.download = defaultFilename;
 			document.body.appendChild(link);
 			link.click();
 			document.body.removeChild(link);
