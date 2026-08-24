@@ -109,41 +109,34 @@ export default function ResultsPage() {
 
   // Verdict Presentation
   const getVerdictCard = (): VerdictCardData => {
-    if (currentResult.verdict === "Spliced") {
+    const v = currentResult.verdict?.toLowerCase() || "";
+    if (v.includes("splice") && !v.includes("ai")) {
       return {
-        bg: "bg-[#e52538] text-white",
+        bg: "bg-[#dc2626] text-white",
         subtitle: "TAMPER DETECTED",
         title: "SPLICED",
         conf: `${Math.round(pSplice * 100)}%`,
       };
     }
-    if (currentResult.verdict === "AI-generated + spliced") {
+    if (v.includes("ai") && v.includes("splice")) {
       return {
-        bg: "bg-[#181f2a] text-white",
+        bg: "bg-[#1e1b4b] text-white",
         subtitle: "SYNTHETIC & TAMPERED",
         title: "AI + SPLICED",
         conf: `${Math.round(Math.max(pAi, pSplice) * 100)}%`,
       };
     }
-    if (currentResult.verdict === "AI-generated") {
-      return {
-        bg: "bg-[#1e293b] text-white",
-        subtitle: "SYNTHESIS DETECTED",
-        title: "AI-GENERATED",
-        conf: `${Math.round(pAi * 100)}%`,
-      };
-    }
-    if (currentResult.verdict === "Deepfake") {
+    if (v.includes("ai") || v.includes("deepfake")) {
       return {
         bg: "bg-[#7c2d12] text-white",
-        subtitle: "DEEPFAKE DETECTED",
-        title: "DEEPFAKE",
-        conf: `${Math.round(pAi * 100)}%`,
+        subtitle: "SYNTHESIS DETECTED",
+        title: "AI-GENERATED / DEEPFAKE",
+        conf: `${Math.round(pAiDeepfake * 100)}%`,
       };
     }
-    if (currentResult.verdict === "Authentic") {
+    if (v.includes("authentic")) {
       return {
-        bg: "bg-[#0f172a] text-white",
+        bg: "bg-[#16a34a] text-white",
         subtitle: "NO TAMPERING DETECTED",
         title: "AUTHENTIC",
         conf: `${Math.round(pAuth * 100)}%`,

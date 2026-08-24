@@ -33,25 +33,25 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
   const pAuth = result.class_probabilities?.authentic ?? (isAuthentic ? 0.93 : Math.max(0.02, 1 - Math.max(pAiDeepfake, pSplice)));
 
   // Determine verdict visual styling
-  let verdictBadgeBg = "bg-amber-600";
+  let verdictBadgeBg = "bg-slate-700";
   let verdictStatusText = "MANUAL REVIEW REQUIRED";
+  let verdictDisplayText = "MANUAL REVIEW";
   let confidenceScore = 50;
 
   if (isSpliced) {
     verdictBadgeBg = "bg-[#dc2626]";
     verdictStatusText = "TAMPER DETECTED";
+    verdictDisplayText = "SPLICED";
     confidenceScore = Math.round(pSplice * 100);
-  } else if (isDeepfake) {
-    verdictBadgeBg = "bg-[#7c2d12]";
-    verdictStatusText = "DEEPFAKE DETECTED";
-    confidenceScore = Math.round(pAiDeepfake * 100);
   } else if (isAi) {
-    verdictBadgeBg = "bg-[#4338ca]";
+    verdictBadgeBg = "bg-[#7c2d12]";
     verdictStatusText = "SYNTHESIS DETECTED";
+    verdictDisplayText = "AI-GENERATED / DEEPFAKE";
     confidenceScore = Math.round(pAiDeepfake * 100);
   } else if (isAuthentic) {
     verdictBadgeBg = "bg-[#16a34a]";
     verdictStatusText = "NO TAMPER DETECTED";
+    verdictDisplayText = "AUTHENTIC";
     confidenceScore = Math.round(pAuth * 100);
   }
 
@@ -94,7 +94,7 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
                 {verdictStatusText}
               </span>
               <span className="text-lg font-black tracking-tight uppercase font-sans block mt-0.5 leading-tight">
-                {verdict.toUpperCase()}
+                {verdictDisplayText}
               </span>
             </div>
             <div className="mt-1">
@@ -402,10 +402,10 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
               <div className="flex flex-col items-center gap-1">
                 <div
                   style={{ height: `${Math.max(10, Math.round(pAiDeepfake * 46))}px` }}
-                  className={`w-3.5 rounded-full transition-all ${isDeepfake ? 'bg-[#7c2d12]' : 'bg-[#4338ca]'}`}
+                  className="w-3.5 rounded-full transition-all bg-[#7c2d12]"
                 />
                 <span className="text-[8px] font-bold text-slate-700 text-center leading-tight">
-                  {isDeepfake ? "Deepfake" : "AI Gen"}
+                  AI / Deepfake
                 </span>
               </div>
             </div>

@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { LogOut, User as UserIcon } from "lucide-react";
+import Link from "next/link";
+import { LogOut, User as UserIcon, History } from "lucide-react";
 
 interface DashboardHeaderProps {
   investigatorName: string;
@@ -76,6 +77,14 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 {investigatorName}
               </p>
             </div>
+
+            <Link
+              href="/history"
+              className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors cursor-pointer border-b border-slate-100"
+            >
+              <History className="w-3.5 h-3.5 text-slate-500" />
+              <span>History Sessions</span>
+            </Link>
 
             <button
               type="button"

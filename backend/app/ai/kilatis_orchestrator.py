@@ -261,15 +261,11 @@ class KilatisOrchestrator:
             has_mask = mask is not None and bool((mask > 0.5).any())
             rep = kd.evaluate(q, p_ai, p_spl, has_mask=has_mask)
 
-            # Refine AI verdict: Deepfake (face-dominant) vs AI-generated (tiling-dominant)
+            # Combine AI-generated and Deepfake into unified "AI-generated / deepfake"
             verdict = rep.verdict
-            if verdict == "AI-generated / deepfake":
-                if p_face is not None and p_face > p_tile:
-                    verdict = "Deepfake"
-                    rep.headline = "Facial region shows strong deepfake synthesis artifacts."
-                else:
-                    verdict = "AI-generated"
-                    rep.headline = "Whole-image analysis indicates AI-generated / synthetic content."
+            if verdict in ("AI-generated / deepfake", "AI-generated", "Deepfake"):
+                verdict = "AI-generated / deepfake"
+                rep.headline = "Forensic analysis indicates AI-generated / synthetic manipulation or deepfake."
 
             # Generate Heatmap Overlay ONLY if image is spliced / tampered
             mask_b64 = None
@@ -282,7 +278,7 @@ class KilatisOrchestrator:
                 p_auth = max(p_auth, 0.90)
             elif verdict == "Spliced":
                 p_auth = min(p_auth, 0.15)
-            elif verdict in ("AI-generated", "Deepfake"):
+            elif verdict == "AI-generated / deepfake":
                 p_auth = min(p_auth, 0.10)
 
             dt = time.time() - t0
