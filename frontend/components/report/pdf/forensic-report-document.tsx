@@ -422,7 +422,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
           verdictStatusText = "TAMPER DETECTED";
           confScore = result.scores?.p_splice ? Math.round(result.scores.p_splice * 100) : 93;
         } else if (isAi) {
-          verdictBg = "#4338ca";
+          verdictBg = "#dc2626";
           verdictStatusText = "SYNTHESIS DETECTED";
           confScore = result.scores?.p_ai ? Math.round(result.scores.p_ai * 100) : 92;
         } else if (isAuthentic) {
