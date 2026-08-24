@@ -137,7 +137,7 @@ export const ReportFirstPage: React.FC<ReportFirstPageProps> = ({ caseData }) =>
       </div>
 
       {/* ③ CASE DESCRIPTION/NOTES (Flex to fill remaining space) */}
-      <div className="bg-[#eef4f9] rounded-2xl p-4 shadow-2xs border border-slate-200/80 flex-1 flex flex-col min-h-[220px]">
+      <div className="bg-[#eef4f9] rounded-2xl p-4 shadow-2xs border border-slate-200/80 flex-1 flex flex-col min-h-55">
         <div className="flex items-center gap-2 mb-0.5">
           <div className="w-4 h-4 rounded-full border border-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-900 font-sans">
             3

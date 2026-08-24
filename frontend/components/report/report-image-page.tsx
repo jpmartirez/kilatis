@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import React from "react";
@@ -14,11 +15,22 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
 }) => {
   const result = item.result;
   const verdict = result.verdict || "Manual review";
+  const vLower = verdict.toLowerCase();
   const isSpliced =
-    verdict.toLowerCase().includes("spliced") || verdict === "AI-generated + spliced";
-  const isAi =
-    verdict.toLowerCase().includes("ai") || verdict.toLowerCase().includes("deepfake");
-  const isAuthentic = verdict.toLowerCase().includes("authentic");
+    vLower.includes("splice") || verdict === "AI-generated + spliced";
+  const isDeepfake = vLower.includes("deepfake");
+  const isAi = vLower.includes("ai") || isDeepfake;
+  const isAuthentic = vLower.includes("authentic");
+
+  // Streams percentages
+  const spatialPct = Math.round((result.streams?.spatial_score ?? result.scores?.p_ai ?? 0.82) * 100);
+  const noisePct = Math.round((result.streams?.noise_score ?? result.scores?.p_splice ?? 0.25) * 100);
+  const freqPct = Math.round((result.streams?.frequency_score ?? result.scores?.p_ai ?? 0.34) * 100);
+
+  // Class probabilities for right chart
+  const pSplice = result.class_probabilities?.traditional_spliced ?? result.scores?.p_splice ?? (isSpliced ? 0.93 : 0.08);
+  const pAiDeepfake = result.class_probabilities?.ai_deepfake ?? result.scores?.p_ai ?? (isAi ? 0.92 : 0.12);
+  const pAuth = result.class_probabilities?.authentic ?? (isAuthentic ? 0.93 : Math.max(0.02, 1 - Math.max(pAiDeepfake, pSplice)));
 
   // Determine verdict visual styling
   let verdictBadgeBg = "bg-amber-600";
@@ -28,28 +40,20 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
   if (isSpliced) {
     verdictBadgeBg = "bg-[#dc2626]";
     verdictStatusText = "TAMPER DETECTED";
-    confidenceScore = result.scores?.p_splice ? Math.round(result.scores.p_splice * 100) : 93;
+    confidenceScore = Math.round(pSplice * 100);
+  } else if (isDeepfake) {
+    verdictBadgeBg = "bg-[#7c2d12]";
+    verdictStatusText = "DEEPFAKE DETECTED";
+    confidenceScore = Math.round(pAiDeepfake * 100);
   } else if (isAi) {
     verdictBadgeBg = "bg-[#4338ca]";
     verdictStatusText = "SYNTHESIS DETECTED";
-    confidenceScore = result.scores?.p_ai ? Math.round(result.scores.p_ai * 100) : 92;
+    confidenceScore = Math.round(pAiDeepfake * 100);
   } else if (isAuthentic) {
     verdictBadgeBg = "bg-[#16a34a]";
-    verdictStatusText = "TAMPER DETECTED";
-    confidenceScore = result.class_probabilities?.authentic
-      ? Math.round(result.class_probabilities.authentic * 100)
-      : Math.round((1 - Math.max(result.scores?.p_ai || 0, result.scores?.p_splice || 0)) * 100);
+    verdictStatusText = "NO TAMPER DETECTED";
+    confidenceScore = Math.round(pAuth * 100);
   }
-
-  // Streams percentages
-  const spatialPct = Math.round((result.streams?.spatial_score ?? result.scores?.p_ai ?? 0.82) * 100);
-  const noisePct = Math.round((result.streams?.noise_score ?? result.scores?.p_splice ?? 0.25) * 100);
-  const freqPct = Math.round((result.streams?.frequency_score ?? result.scores?.p_ai ?? 0.34) * 100);
-
-  // Class probabilities for right chart
-  const pAuth = result.class_probabilities?.authentic ?? (isAuthentic ? 0.93 : 0.05);
-  const pSplice = result.class_probabilities?.traditional_spliced ?? (isSpliced ? 0.93 : 0.08);
-  const pAiDeepfake = result.class_probabilities?.ai_deepfake ?? (isAi ? 0.92 : 0.12);
 
   const filename = item.originalName || item.result.filename || `asset${index + 1}.jpg`;
 
@@ -83,14 +87,14 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
         <div className="bg-white rounded-xl p-3.5 shadow-2xs border border-slate-200/60 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
           {/* Verdict Box */}
           <div
-            className={`md:col-span-4 ${verdictBadgeBg} text-white rounded-xl p-3 text-left shadow-xs flex flex-col justify-between min-h-[92px]`}
+            className={`md:col-span-4 ${verdictBadgeBg} text-white rounded-xl p-3 text-left shadow-xs flex flex-col justify-between min-h-23`}
           >
             <div>
               <span className="text-[8.5px] font-sans font-bold uppercase tracking-wider block opacity-90">
                 {verdictStatusText}
               </span>
               <span className="text-lg font-black tracking-tight uppercase font-sans block mt-0.5 leading-tight">
-                {verdict === "AI-generated / deepfake" ? "AI DEEPFAKE" : verdict.toUpperCase()}
+                {verdict.toUpperCase()}
               </span>
             </div>
             <div className="mt-1">
@@ -118,10 +122,17 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
             ) : isAi ? (
               <>
                 <p>
-                  Multi-branch neural analysis detected structural artifacts characteristic of <strong>AI synthesis and deepfake generation</strong>.
+                  {isDeepfake ? (
+                    <>Multi-branch neural analysis detected structural artifacts in the <strong>facial region</strong> characteristic of <strong>deepfake synthesis</strong>.</>
+                  ) : (
+                    <>Multi-branch neural analysis detected structural artifacts characteristic of <strong>AI-generated / synthetic image content</strong>.</>
+                  )}
                 </p>
                 <p className="text-slate-600 text-[9.5px]">
-                  The finding is driven by frequency domain irregularities and convolutional generative fingerprint patterns detected across internal network layers.
+                  {isDeepfake
+                    ? "The finding is driven by face-crop tiling analysis detecting generative fingerprint patterns localized to the facial region."
+                    : "The finding is driven by frequency domain irregularities and convolutional generative fingerprint patterns detected across whole-image tiles."
+                  }
                 </p>
               </>
             ) : isAuthentic ? (
@@ -161,7 +172,7 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
           className={`grid gap-3 mb-2 ${
             isSpliced && result.mask_base64
               ? "grid-cols-2"
-              : "grid-cols-1 max-w-[240px] mx-auto"
+              : "grid-cols-1 max-w-60 mx-auto"
           }`}
         >
           {/* Questioned Image */}
@@ -304,7 +315,7 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
               <div className="space-y-1">
                 <div className="flex items-start justify-between gap-1">
                   <span className="text-slate-600 font-medium">SHA-256:</span>
-                  <span className="font-bold text-slate-900 font-mono text-[8.5px] truncate max-w-[100px]">
+                  <span className="font-bold text-slate-900 font-mono text-[8.5px] truncate max-w-25">
                     {item.sha256 || "4f9a1eddfgdgoo47nsc8021bd3e21c"}
                   </span>
                 </div>
@@ -364,12 +375,12 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
                 CLASS PROBABILITY
               </span>
             </div>
-            <div className="bg-white rounded-xl p-3 shadow-2xs border border-slate-200/60 flex items-end justify-around h-[84px] flex-1">
+            <div className="bg-white rounded-xl p-3 shadow-2xs border border-slate-200/60 flex items-end justify-around h-21 flex-1">
               {/* Authentic Bar */}
               <div className="flex flex-col items-center gap-1">
                 <div
                   style={{ height: `${Math.max(10, Math.round(pAuth * 46))}px` }}
-                  className="w-3.5 bg-slate-600 rounded-full transition-all"
+                  className="w-3.5 bg-[#16a34a] rounded-full transition-all"
                 />
                 <span className="text-[8px] font-bold text-slate-700 text-center leading-tight">
                   Authentic
@@ -380,21 +391,21 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
               <div className="flex flex-col items-center gap-1">
                 <div
                   style={{ height: `${Math.max(10, Math.round(pSplice * 46))}px` }}
-                  className="w-3.5 bg-red-600 rounded-full transition-all"
+                  className="w-3.5 bg-[#dc2626] rounded-full transition-all"
                 />
                 <span className="text-[8px] font-bold text-slate-700 text-center leading-tight">
                   Spliced
                 </span>
               </div>
 
-              {/* AI Deepfake Bar */}
+              {/* AI / Deepfake Bar */}
               <div className="flex flex-col items-center gap-1">
                 <div
                   style={{ height: `${Math.max(10, Math.round(pAiDeepfake * 46))}px` }}
-                  className="w-3.5 bg-slate-700 rounded-full transition-all"
+                  className={`w-3.5 rounded-full transition-all ${isDeepfake ? 'bg-[#7c2d12]' : 'bg-[#4338ca]'}`}
                 />
                 <span className="text-[8px] font-bold text-slate-700 text-center leading-tight">
-                  AI gen- /<br />Deepfake
+                  {isDeepfake ? "Deepfake" : "AI Gen"}
                 </span>
               </div>
             </div>

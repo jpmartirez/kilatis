@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
 import { getStoredResults } from "@/lib/storage";
 import { ReportCaseData } from "@/types/report";
 import { StoredResultItem } from "@/types";
@@ -15,7 +14,6 @@ import { Loader2, AlertCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 export default function ReportPage() {
-  const router = useRouter();
   const [caseData, setCaseData] = useState<ReportCaseData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);

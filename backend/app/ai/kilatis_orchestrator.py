@@ -80,9 +80,9 @@ class KilatisOrchestrator:
         self._load_b2()
         self.is_ready = (self.b1_model is not None and self.b2_model is not None)
         if self.is_ready:
-            print("[KILATIS AI] ✓ All KILATIS dual-branch models loaded successfully!")
+            print("[KILATIS AI] [OK] All KILATIS dual-branch models loaded successfully!")
         else:
-            print("[KILATIS AI] ⚠ One or more models operating in fallback mode.")
+            print("[KILATIS AI] [WARN] One or more models operating in fallback mode.")
 
     def _load_b1(self):
         if self.b1_model is not None:
@@ -97,7 +97,7 @@ class KilatisOrchestrator:
             state = ck["model"] if isinstance(ck, dict) and "model" in ck else ck
             m.load_state_dict(state)
             self.b1_model = m
-            print(f"[KILATIS AI] ✓ Branch 1 (AI/Deepfake) loaded on {self.device}")
+            print(f"[KILATIS AI] [OK] Branch 1 (AI/Deepfake) loaded on {self.device}")
             return m
         except Exception as err:
             print(f"[KILATIS AI ERROR] Failed to load Branch 1: {err}")
@@ -121,7 +121,7 @@ class KilatisOrchestrator:
             m.load_state_dict(sd.get("model", sd), strict=False)
             m.eval().to(self.device)
             self.b2_model = m
-            print(f"[KILATIS AI] ✓ Branch 2 (TruFor Splicing) loaded on {self.device}")
+            print(f"[KILATIS AI] [OK] Branch 2 (TruFor Splicing) loaded on {self.device}")
             return m
         except Exception as err:
             print(f"[KILATIS AI ERROR] Failed to load Branch 2: {err}")
@@ -141,13 +141,16 @@ class KilatisOrchestrator:
         return [a[y:y + tile, x:x + tile, :] for y in ys for x in xs]
 
     @torch.no_grad()
-    def _run_b1_score(self, img_pil: Image.Image) -> Tuple[float, float, float, float, int]:
+    def _run_b1_score(self, img_pil: Image.Image) -> Tuple[float, float, float, float, int, Optional[float], int, int]:
         m = self._load_b1()
         if m is None:
-            return 0.05, 0.05, 0.05, 0.05, 0
+            return 0.05, 0.05, 0.05, 0.05, 0, None, 0, 0
 
         from branch2_data import _spatial, _frequency, _wavelet, SIZE
+        from app.ai.transforms import extract_face_crops
         a = np.ascontiguousarray(np.array(img_pil, dtype=np.uint8))
+        
+        # 1. Whole-Image Tiling Path
         tiles = self._b1_tiles(a, SIZE)
         ps, ps_s, ps_f, ps_w = [], [], [], []
 
@@ -170,8 +173,32 @@ class KilatisOrchestrator:
         p_s = np.concatenate(ps_s) if ps_s else p
         p_f = np.concatenate(ps_f) if ps_f else p
         p_w = np.concatenate(ps_w) if ps_w else p
+        p_tile = float(p.mean())
 
-        return float(p.mean()), float(p_s.mean()), float(p_f.mean()), float(p_w.mean()), len(tiles)
+        # 2. Face Detection & Face-Crop Tiling Path
+        face_crops = extract_face_crops(a)
+        p_face: Optional[float] = None
+        n_faces = len(face_crops)
+        n_face_tiles = 0
+
+        if face_crops:
+            face_tiles = []
+            for fc in face_crops:
+                face_tiles.extend(self._b1_tiles(fc, SIZE))
+            n_face_tiles = len(face_tiles)
+            if face_tiles:
+                ps_face = []
+                for i in range(0, len(face_tiles), 32):
+                    b = face_tiles[i:i + 32]
+                    s = torch.stack([torch.from_numpy(_spatial(t)) for t in b]).to(self.device)
+                    f = torch.stack([torch.from_numpy(_frequency(t)) for t in b]).to(self.device)
+                    w = torch.stack([torch.from_numpy(_wavelet(t)) for t in b]).to(self.device)
+                    out = m(s, f, w)
+                    ps_face.append(torch.softmax(out["main"], 1)[:, 1].cpu().numpy())
+                if ps_face:
+                    p_face = float(np.concatenate(ps_face).mean())
+
+        return p_tile, float(p_s.mean()), float(p_f.mean()), float(p_w.mean()), len(tiles), p_face, n_faces, n_face_tiles
 
     @torch.no_grad()
     def _run_b2_score(self, temp_image_path: str) -> Tuple[float, float, Optional[np.ndarray]]:
@@ -215,11 +242,14 @@ class KilatisOrchestrator:
             q = kd.input_quality(temp_image_path)
             orig_img = ImageOps.exif_transpose(Image.open(temp_image_path).convert("RGB"))
 
-            # Branch 1: AI / Deepfake (with Spatial, Frequency, Wavelet auxiliary streams)
+            # Branch 1: AI / Deepfake (with Spatial, Frequency, Wavelet auxiliary streams + Face detection)
             if q.ai_ok:
-                p_ai, p_spatial, p_frequency, p_wavelet, _ = self._run_b1_score(orig_img)
+                p_tile, p_spatial, p_frequency, p_wavelet, n_tiles, p_face, n_faces, n_face_tiles = self._run_b1_score(orig_img)
+                # Combine tile and face scores
+                p_ai = max(p_tile, p_face) if p_face is not None else p_tile
             else:
-                p_ai, p_spatial, p_frequency, p_wavelet = 0.0, 0.0, 0.0, 0.0
+                p_tile, p_spatial, p_frequency, p_wavelet, n_tiles, p_face, n_faces, n_face_tiles = 0.0, 0.0, 0.0, 0.0, 0, None, 0, 0
+                p_ai = 0.0
 
             # Branch 2: Splicing & Tamper Localization (with Noiseprint consistency)
             if q.splice_ok:
@@ -231,26 +261,43 @@ class KilatisOrchestrator:
             has_mask = mask is not None and bool((mask > 0.5).any())
             rep = kd.evaluate(q, p_ai, p_spl, has_mask=has_mask)
 
+            # Refine AI verdict: Deepfake (face-dominant) vs AI-generated (tiling-dominant)
+            verdict = rep.verdict
+            if verdict == "AI-generated / deepfake":
+                if p_face is not None and p_face > p_tile:
+                    verdict = "Deepfake"
+                    rep.headline = "Facial region shows strong deepfake synthesis artifacts."
+                else:
+                    verdict = "AI-generated"
+                    rep.headline = "Whole-image analysis indicates AI-generated / synthetic content."
+
             # Generate Heatmap Overlay ONLY if image is spliced / tampered
             mask_b64 = None
-            if (rep.verdict == "Spliced" or rep.verdict == "AI-generated + spliced") and mask is not None:
+            if (verdict == "Spliced" or verdict == "AI-generated + spliced") and mask is not None:
                 mask_b64 = generate_heatmap_base64(orig_img, mask)
 
             # Compute 3 Canonical Class Probabilities (Authentic, Traditional Spliced, AI-Generated / Deepfake)
             p_auth = max(0.0, min(1.0, 1.0 - max(p_ai, p_spl)))
-            if rep.verdict == "Authentic":
+            if verdict == "Authentic":
                 p_auth = max(p_auth, 0.90)
-            elif rep.verdict == "Spliced":
+            elif verdict == "Spliced":
                 p_auth = min(p_auth, 0.15)
-            elif rep.verdict == "AI-generated / deepfake":
+            elif verdict in ("AI-generated", "Deepfake"):
                 p_auth = min(p_auth, 0.10)
 
             dt = time.time() - t0
-            print(f"[KILATIS AI] '{filename}' analyzed in {dt:.2f}s -> Verdict: {rep.verdict} | P(AI)={p_ai:.4f} | P(Splice)={p_spl:.4f}")
+            p_face_log = f"{p_face:.4f} ({n_faces} face(s), {n_face_tiles} tiles)" if p_face is not None else "None detected"
+            print(
+                f"[KILATIS AI] '{filename}' analyzed in {dt:.2f}s -> Verdict: {verdict}\n"
+                f"             |-- P(Tiling) : {p_tile:.4f} ({n_tiles} tiles)\n"
+                f"             |-- P(Face)   : {p_face_log}\n"
+                f"             |-- P(Splice) : {p_spl:.4f}\n"
+                f"             \\-- P(AI_Comb): {p_ai:.4f}"
+            )
 
             return ImageAnalysisResult(
                 filename=filename,
-                verdict=rep.verdict,
+                verdict=verdict,
                 headline=rep.headline,
                 scores=DetectionScores(
                     p_ai=round(p_ai, 4),

@@ -268,7 +268,6 @@ interface ForensicReportDocumentProps {
 
 export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
   caseData,
-  examinerNotes,
 }) => {
   const caseNumber = caseData.caseNumber || "KIL-0417-2026";
   const caseTitle = caseData.caseTitle || "VERIFY SUSPECT IMAGE";
@@ -407,11 +406,20 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
       {items.map((item: StoredResultItem, idx: number) => {
         const result = item.result;
         const verdict = result.verdict || "Manual review";
+        const vLower = verdict.toLowerCase();
         const isSpliced =
-          verdict.toLowerCase().includes("spliced") || verdict === "AI-generated + spliced";
-        const isAi =
-          verdict.toLowerCase().includes("ai") || verdict.toLowerCase().includes("deepfake");
-        const isAuthentic = verdict.toLowerCase().includes("authentic");
+          vLower.includes("splice") || verdict === "AI-generated + spliced";
+        const isDeepfake = vLower.includes("deepfake");
+        const isAi = vLower.includes("ai") || isDeepfake;
+        const isAuthentic = vLower.includes("authentic");
+
+        const spatialPct = Math.round((result.streams?.spatial_score ?? result.scores?.p_ai ?? 0.82) * 100);
+        const noisePct = Math.round((result.streams?.noise_score ?? result.scores?.p_splice ?? 0.25) * 100);
+        const freqPct = Math.round((result.streams?.frequency_score ?? result.scores?.p_ai ?? 0.34) * 100);
+
+        const pSplice = result.class_probabilities?.traditional_spliced ?? result.scores?.p_splice ?? (isSpliced ? 0.93 : 0.08);
+        const pAiDeepfake = result.class_probabilities?.ai_deepfake ?? result.scores?.p_ai ?? (isAi ? 0.92 : 0.12);
+        const pAuth = result.class_probabilities?.authentic ?? (isAuthentic ? 0.93 : Math.max(0.02, 1 - Math.max(pAiDeepfake, pSplice)));
 
         let verdictBg = "#d97706";
         let verdictStatusText = "MANUAL REVIEW REQUIRED";
@@ -420,26 +428,20 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
         if (isSpliced) {
           verdictBg = "#dc2626";
           verdictStatusText = "TAMPER DETECTED";
-          confScore = result.scores?.p_splice ? Math.round(result.scores.p_splice * 100) : 93;
+          confScore = Math.round(pSplice * 100);
+        } else if (isDeepfake) {
+          verdictBg = "#7c2d12";
+          verdictStatusText = "DEEPFAKE DETECTED";
+          confScore = Math.round(pAiDeepfake * 100);
         } else if (isAi) {
-          verdictBg = "#dc2626";
+          verdictBg = "#4338ca";
           verdictStatusText = "SYNTHESIS DETECTED";
-          confScore = result.scores?.p_ai ? Math.round(result.scores.p_ai * 100) : 92;
+          confScore = Math.round(pAiDeepfake * 100);
         } else if (isAuthentic) {
           verdictBg = "#16a34a";
           verdictStatusText = "NO TAMPER DETECTED";
-          confScore = result.class_probabilities?.authentic
-            ? Math.round(result.class_probabilities.authentic * 100)
-            : 93;
+          confScore = Math.round(pAuth * 100);
         }
-
-        const spatialPct = Math.round((result.streams?.spatial_score ?? result.scores?.p_ai ?? 0.82) * 100);
-        const noisePct = Math.round((result.streams?.noise_score ?? result.scores?.p_splice ?? 0.25) * 100);
-        const freqPct = Math.round((result.streams?.frequency_score ?? result.scores?.p_ai ?? 0.34) * 100);
-
-        const pAuth = result.class_probabilities?.authentic ?? (isAuthentic ? 0.93 : 0.05);
-        const pSplice = result.class_probabilities?.traditional_spliced ?? (isSpliced ? 0.93 : 0.08);
-        const pAiDeepfake = result.class_probabilities?.ai_deepfake ?? (isAi ? 0.92 : 0.12);
 
         const filename = item.originalName || result.filename || `asset${idx + 1}.jpg`;
 
@@ -470,7 +472,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
                     <View>
                       <Text style={styles.verdictSubtitle}>{verdictStatusText}</Text>
                       <Text style={styles.verdictTitle}>
-                        {verdict === "AI-generated / deepfake" ? "AI DEEPFAKE" : verdict.toUpperCase()}
+                        {verdict.toUpperCase()}
                       </Text>
                     </View>
                     <View>
@@ -493,10 +495,16 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
                     ) : isAi ? (
                       <>
                         <Text style={[styles.paragraphText, { marginBottom: 4 }]}>
-                          Multi-branch neural analysis detected structural artifacts characteristic of <Text style={{ fontFamily: "Helvetica-Bold" }}>AI synthesis and deepfake generation</Text>.
+                          {isDeepfake
+                            ? <>Multi-branch neural analysis detected structural artifacts in the <Text style={{ fontFamily: "Helvetica-Bold" }}>facial region</Text> characteristic of <Text style={{ fontFamily: "Helvetica-Bold" }}>deepfake synthesis</Text>.</>
+                            : <>Multi-branch neural analysis detected structural artifacts characteristic of <Text style={{ fontFamily: "Helvetica-Bold" }}>AI-generated / synthetic image content</Text>.</>
+                          }
                         </Text>
                         <Text style={{ fontSize: 7.5, color: "#64748b", lineHeight: 1.3 }}>
-                          The finding is driven by frequency domain irregularities and convolutional generative fingerprint patterns detected across internal network layers.
+                          {isDeepfake
+                            ? "The finding is driven by face-crop tiling analysis detecting generative fingerprint patterns localized to the facial region."
+                            : "The finding is driven by frequency domain irregularities and convolutional generative fingerprint patterns detected across whole-image tiles."
+                          }
                         </Text>
                       </>
                     ) : (
@@ -643,7 +651,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
                     <Text style={[styles.labelSmall, { textAlign: "center", marginBottom: 3 }]}>CLASS PROBABILITY</Text>
                     <View style={[styles.innerWhiteBox, { height: 68, flexDirection: "row", alignItems: "flex-end", justifyContent: "space-around" }]}>
                       <View style={{ alignItems: "center" }}>
-                        <View style={{ width: 10, height: Math.max(8, Math.round(pAuth * 36)), backgroundColor: "#475569", borderRadius: 5 }} />
+                        <View style={{ width: 10, height: Math.max(8, Math.round(pAuth * 36)), backgroundColor: "#16a34a", borderRadius: 5 }} />
                         <Text style={{ fontSize: 6.5, color: "#334155", fontFamily: "Helvetica-Bold", marginTop: 3 }}>Authentic</Text>
                       </View>
 
@@ -653,8 +661,10 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
                       </View>
 
                       <View style={{ alignItems: "center" }}>
-                        <View style={{ width: 10, height: Math.max(8, Math.round(pAiDeepfake * 36)), backgroundColor: "#334155", borderRadius: 5 }} />
-                        <Text style={{ fontSize: 6.5, color: "#334155", fontFamily: "Helvetica-Bold", marginTop: 3, textAlign: "center" }}>AI Deepfake</Text>
+                        <View style={{ width: 10, height: Math.max(8, Math.round(pAiDeepfake * 36)), backgroundColor: isDeepfake ? "#7c2d12" : "#4338ca", borderRadius: 5 }} />
+                        <Text style={{ fontSize: 6.5, color: "#334155", fontFamily: "Helvetica-Bold", marginTop: 3, textAlign: "center" }}>
+                          {isDeepfake ? "Deepfake" : "AI Gen"}
+                        </Text>
                       </View>
                     </View>
                   </View>

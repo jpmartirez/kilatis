@@ -17,27 +17,8 @@ IMAGENET_MEAN = np.array([0.485, 0.456, 0.406], np.float32)
 IMAGENET_STD  = np.array([0.229, 0.224, 0.225], np.float32)
 TILE_SIZE = 256
 
-_FACE_CASCADE = None
 
-def get_face_cascade():
-    global _FACE_CASCADE
-    if _FACE_CASCADE is None:
-        try:
-            cascade_cls = getattr(cv2, "CascadeClassifier", None)
-            if cascade_cls is None:
-                objdetect = getattr(cv2, "objdetect", None)
-                if objdetect is not None:
-                    cascade_cls = getattr(objdetect, "CascadeClassifier", None)
 
-            if cascade_cls is not None:
-                data_mod = getattr(cv2, "data", None)
-                haarcascades = getattr(data_mod, "haarcascades", "") if data_mod else ""
-                xml_path = os.path.join(haarcascades, "haarcascade_frontalface_default.xml")
-                if os.path.isfile(xml_path):
-                    _FACE_CASCADE = cascade_cls(xml_path)
-        except Exception:
-            _FACE_CASCADE = None
-    return _FACE_CASCADE
 
 
 def spatial_transform(a: np.ndarray) -> np.ndarray:
@@ -87,51 +68,61 @@ def wavelet_transform(a: np.ndarray) -> np.ndarray:
         subbands.append(s)
     return np.stack(subbands, 0).astype(np.float32)
 
+_YUNET_MODEL_PATH = os.path.join(os.path.dirname(__file__), "face_detection_yunet.onnx")
+
 
 def extract_face_crops(img_np: np.ndarray, margin: float = 0.15) -> list[np.ndarray]:
     """
-    Detects facial regions with false-positive filtering and 15% boundary margin.
+    Detects facial regions using OpenCV YuNet DNN face detector with margin expansion.
+    Returns list of face crop arrays suitable for tiling.
     """
     try:
         arr = np.ascontiguousarray(img_np, dtype=np.uint8)
         h_img, w_img = arr.shape[:2]
 
-        face_cascade = get_face_cascade()
-        if face_cascade is None:
+        if not os.path.isfile(_YUNET_MODEL_PATH):
+            print(f"[FACE] YuNet model not found at {_YUNET_MODEL_PATH}")
             return []
 
-        empty_fn = getattr(face_cascade, "empty", None)
-        if empty_fn and empty_fn():
-            return []
-
-        gray = cv2.cvtColor(arr, cv2.COLOR_RGB2GRAY)
-        min_dim = max(100, int(min(h_img, w_img) * 0.12))
-
-        faces = face_cascade.detectMultiScale(
-            gray,
-            scaleFactor=1.1,
-            minNeighbors=8,
-            minSize=(min_dim, min_dim)
+        detector = cv2.FaceDetectorYN.create(
+            _YUNET_MODEL_PATH, "", (w_img, h_img),
+            score_threshold=0.5, nms_threshold=0.3, top_k=10
         )
+        _, faces = detector.detect(arr)
 
-        if len(faces) == 0:
+        if faces is None or len(faces) == 0:
             return []
 
         crops = []
-        for (x, y, w, h) in faces:
-            aspect_ratio = w / float(h)
-            if aspect_ratio < 0.75 or aspect_ratio > 1.35:
+        for f in faces:
+            x, y, fw, fh = int(f[0]), int(f[1]), int(f[2]), int(f[3])
+            conf = float(f[14]) if len(f) > 14 else float(f[-1])
+
+            # Skip low-confidence detections
+            if conf < 0.5:
                 continue
 
-            mx = int(w * margin)
-            my = int(h * margin)
+            # Aspect ratio filter
+            aspect_ratio = fw / float(fh) if fh > 0 else 0
+            if aspect_ratio < 0.5 or aspect_ratio > 2.0:
+                continue
+
+            # Add margin
+            mx = int(fw * margin)
+            my = int(fh * margin)
             x1 = max(0, x - mx)
             y1 = max(0, y - my)
-            x2 = min(w_img, x + w + mx)
-            y2 = min(h_img, y + h + my)
-            crops.append(arr[y1:y2, x1:x2, :])
+            x2 = min(w_img, x + fw + mx)
+            y2 = min(h_img, y + fh + my)
+
+            crop = arr[y1:y2, x1:x2, :]
+            if crop.size > 0:
+                crops.append(crop)
+
+        print(f"[FACE] Detected {len(crops)} face(s) in {w_img}x{h_img} image")
         return crops
-    except Exception:
+    except Exception as e:
+        print(f"[FACE] Error: {e}")
         return []
 
 

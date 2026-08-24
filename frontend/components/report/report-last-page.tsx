@@ -11,8 +11,6 @@ interface ReportLastPageProps {
 }
 
 export const ReportLastPage: React.FC<ReportLastPageProps> = ({
-  caseData,
-  examinerNotes,
   onNotesChange,
 }) => {
   const [cert1, setCert1] = useState(false);
@@ -25,7 +23,7 @@ export const ReportLastPage: React.FC<ReportLastPageProps> = ({
   return (
     <div className="space-y-4 flex-1 flex flex-col justify-between font-sans h-full">
       {/* ④ EXAMINER'S NOTES/ANALYSIS (Blank open writing canvas without placeholder) */}
-      <div className="bg-[#eef4f9] rounded-2xl p-5 shadow-2xs border border-slate-200/80 flex-1 flex flex-col min-h-[260px]">
+      <div className="bg-[#eef4f9] rounded-2xl p-5 shadow-2xs border border-slate-200/80 flex-1 flex flex-col min-h-65">
         <div className="flex items-center gap-2 mb-0.5">
           <div className="w-4 h-4 rounded-full border border-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-900 font-sans">
             4
@@ -102,7 +100,7 @@ export const ReportLastPage: React.FC<ReportLastPageProps> = ({
                 type="text"
                 value={examinerName}
                 onChange={(e) => setExaminerName(e.target.value)}
-                className="w-full bg-[#f1f5f9] rounded-lg px-3 py-2 text-xs text-slate-900 font-medium outline-hidden border border-transparent focus:border-slate-300 min-h-[30px]"
+                className="w-full bg-[#f1f5f9] rounded-lg px-3 py-2 text-xs text-slate-900 font-medium outline-hidden border border-transparent focus:border-slate-300 min-h-7.5"
               />
             </div>
 
@@ -114,7 +112,7 @@ export const ReportLastPage: React.FC<ReportLastPageProps> = ({
                 type="text"
                 value={badgeNumber}
                 onChange={(e) => setBadgeNumber(e.target.value)}
-                className="w-full bg-[#f1f5f9] rounded-lg px-3 py-2 text-xs text-slate-900 font-medium outline-hidden border border-transparent focus:border-slate-300 min-h-[30px]"
+                className="w-full bg-[#f1f5f9] rounded-lg px-3 py-2 text-xs text-slate-900 font-medium outline-hidden border border-transparent focus:border-slate-300 min-h-7.5"
               />
             </div>
 
@@ -126,7 +124,7 @@ export const ReportLastPage: React.FC<ReportLastPageProps> = ({
                 type="text"
                 value={signature}
                 onChange={(e) => setSignature(e.target.value)}
-                className="w-full bg-[#f1f5f9] rounded-lg px-3 py-2 text-xs text-slate-900 font-serif italic outline-hidden border border-transparent focus:border-slate-300 min-h-[30px]"
+                className="w-full bg-[#f1f5f9] rounded-lg px-3 py-2 text-xs text-slate-900 font-serif italic outline-hidden border border-transparent focus:border-slate-300 min-h-7.5"
               />
             </div>
 
@@ -138,7 +136,7 @@ export const ReportLastPage: React.FC<ReportLastPageProps> = ({
                 type="text"
                 value={dateVal}
                 onChange={(e) => setDateVal(e.target.value)}
-                className="w-full bg-[#f1f5f9] rounded-lg px-3 py-2 text-xs text-slate-900 font-medium outline-hidden border border-transparent focus:border-slate-300 min-h-[30px]"
+                className="w-full bg-[#f1f5f9] rounded-lg px-3 py-2 text-xs text-slate-900 font-medium outline-hidden border border-transparent focus:border-slate-300 min-h-7.5"
               />
             </div>
           </div>
