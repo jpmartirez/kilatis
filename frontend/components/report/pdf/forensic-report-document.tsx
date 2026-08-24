@@ -534,25 +534,25 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 						? 0.93
 						: Math.max(0.02, 1 - Math.max(pAiDeepfake, pSplice)));
 
-				let verdictBg = "#d97706";
+				let verdictBg = "#475569";
 				let verdictStatusText = "MANUAL REVIEW REQUIRED";
+				let verdictTitle = "MANUAL REVIEW";
 				let confScore = 50;
 
 				if (isSpliced) {
 					verdictBg = "#dc2626";
 					verdictStatusText = "TAMPER DETECTED";
+					verdictTitle = "SPLICED";
 					confScore = Math.round(pSplice * 100);
-				} else if (isDeepfake) {
-					verdictBg = "#7c2d12";
-					verdictStatusText = "DEEPFAKE DETECTED";
-					confScore = Math.round(pAiDeepfake * 100);
 				} else if (isAi) {
-					verdictBg = "#4338ca";
+					verdictBg = "#7c2d12";
 					verdictStatusText = "SYNTHESIS DETECTED";
+					verdictTitle = "AI-GENERATED / DEEPFAKE";
 					confScore = Math.round(pAiDeepfake * 100);
 				} else if (isAuthentic) {
 					verdictBg = "#16a34a";
 					verdictStatusText = "NO TAMPER DETECTED";
+					verdictTitle = "AUTHENTIC";
 					confScore = Math.round(pAuth * 100);
 				}
 
@@ -604,7 +604,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 												{verdictStatusText}
 											</Text>
 											<Text style={styles.verdictTitle}>
-												{verdict.toUpperCase()}
+												{verdictTitle}
 											</Text>
 										</View>
 										<View>
@@ -1096,7 +1096,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 													style={{
 														width: 10,
 														height: Math.max(8, Math.round(pAiDeepfake * 36)),
-														backgroundColor: isDeepfake ? "#7c2d12" : "#4338ca",
+														backgroundColor: "#7c2d12",
 														borderRadius: 5,
 													}}
 												/>
@@ -1109,7 +1109,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 														textAlign: "center",
 													}}
 												>
-													{isDeepfake ? "Deepfake" : "AI Gen"}
+													AI / Deepfake
 												</Text>
 											</View>
 										</View>

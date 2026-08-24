@@ -100,8 +100,7 @@ export const HistoryFilterSidebar: React.FC<HistoryFilterSidebarProps> = ({
           >
             <option value="ALL">ALL VERDICTS</option>
             <option value="SPLICED">SPLICED</option>
-            <option value="DEEPFAKE">DEEPFAKE</option>
-            <option value="AI-GENERATED">AI-GENERATED</option>
+            <option value="AI">AI-GENERATED / DEEPFAKE</option>
             <option value="AUTHENTIC">AUTHENTIC</option>
           </select>
         </div>

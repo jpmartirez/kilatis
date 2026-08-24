@@ -29,16 +29,21 @@ export const HistoryRowItem: React.FC<HistoryRowItemProps> = ({ item }) => {
     if (vUpper.includes("SPLICE")) {
       return "text-red-700 bg-red-50 border border-red-200";
     }
-    if (vUpper.includes("DEEPFAKE")) {
-      return "text-amber-800 bg-amber-50 border border-amber-200";
-    }
-    if (vUpper.includes("AI")) {
-      return "text-indigo-700 bg-indigo-50 border border-indigo-200";
+    if (vUpper.includes("AI") || vUpper.includes("DEEPFAKE")) {
+      return "text-[#7c2d12] bg-[#7c2d12]/10 border border-[#7c2d12]/20";
     }
     if (vUpper.includes("AUTHENTIC")) {
       return "text-emerald-700 bg-emerald-50 border border-emerald-200";
     }
     return "text-slate-700 bg-slate-100 border border-slate-200";
+  };
+
+  const getVerdictLabel = (v: string) => {
+    const vUpper = v.toUpperCase();
+    if (vUpper.includes("AI") || vUpper.includes("DEEPFAKE")) {
+      return "AI / DEEPFAKE";
+    }
+    return vUpper;
   };
 
   return (
@@ -68,7 +73,7 @@ export const HistoryRowItem: React.FC<HistoryRowItemProps> = ({ item }) => {
                 v
               )}`}
             >
-              {v === "AI-GENERATED" ? "AI" : v}
+              {getVerdictLabel(v)}
             </span>
           ))
         ) : (
