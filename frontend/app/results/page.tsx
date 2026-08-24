@@ -125,11 +125,19 @@ export default function ResultsPage() {
         conf: `${Math.round(Math.max(pAi, pSplice) * 100)}%`,
       };
     }
-    if (currentResult.verdict === "AI-generated / deepfake") {
+    if (currentResult.verdict === "AI-generated") {
       return {
         bg: "bg-[#1e293b] text-white",
         subtitle: "SYNTHESIS DETECTED",
         title: "AI-GENERATED",
+        conf: `${Math.round(pAi * 100)}%`,
+      };
+    }
+    if (currentResult.verdict === "Deepfake") {
+      return {
+        bg: "bg-[#7c2d12] text-white",
+        subtitle: "DEEPFAKE DETECTED",
+        title: "DEEPFAKE",
         conf: `${Math.round(pAi * 100)}%`,
       };
     }
@@ -199,6 +207,7 @@ export default function ResultsPage() {
             caseNotes={data.caseNotes}
             currentItem={currentItem}
             currentResult={currentResult}
+            onGenerateReport={() => router.push("/report")}
           />
         </div>
       </div>

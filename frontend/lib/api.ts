@@ -44,7 +44,7 @@ export interface ClassProbabilities {
 
 export interface ImageAnalysisResult {
   filename: string;
-  verdict: "Authentic" | "Spliced" | "AI-generated / deepfake" | "AI-generated + spliced" | "Manual review" | string;
+  verdict: "Authentic" | "Spliced" | "AI-generated" | "Deepfake" | "AI-generated + spliced" | "Manual review" | string;
   headline: string;
   scores: DetectionScores;
   streams?: StreamEvidence;
