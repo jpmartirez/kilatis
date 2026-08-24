@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
-import { getStoredResults } from "@/lib/storage";
+import { useRouter } from "next/navigation";
+import { getStoredResults, clearStoredResults } from "@/lib/storage";
 import { ReportCaseData } from "@/types/report";
 import { StoredResultItem } from "@/types";
 import { ReportToolbar } from "@/components/report/report-toolbar";
@@ -10,13 +11,15 @@ import { ReportFirstPage } from "@/components/report/report-first-page";
 import { ReportImagePage } from "@/components/report/report-image-page";
 import { ReportLastPage } from "@/components/report/report-last-page";
 import { ForensicReportDocument } from "@/components/report/pdf/forensic-report-document";
-import { Loader2, AlertCircle, ArrowLeft } from "lucide-react";
+import { Loader2, AlertCircle, ArrowLeft, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 
 export default function ReportPage() {
+	const router = useRouter();
 	const [caseData, setCaseData] = useState<ReportCaseData | null>(null);
 	const [isLoading, setIsLoading] = useState<boolean>(true);
 	const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
+	const [isCompletingReport, setIsCompletingReport] = useState<boolean>(false);
 	const [zoomLevel, setZoomLevel] = useState<number>(100);
 	const [examinerNotes, setExaminerNotes] = useState<string>("");
 	const [examinerName, setExaminerName] = useState<string>("");
@@ -120,10 +123,31 @@ export default function ReportPage() {
 		}
 	};
 
+	// Complete Report Handler: clears active forensic data and resets workspace
+	const handleCompleteReport = async () => {
+		setIsCompletingReport(true);
+		try {
+			// Clear active forensic case results from storage
+			await clearStoredResults("kilatis_active_results");
+			if (typeof window !== "undefined") {
+				sessionStorage.removeItem("kilatis_active_results");
+				localStorage.removeItem("kilatis_active_results");
+			}
+
+			// Brief smooth loading transition for user feedback
+			await new Promise((resolve) => setTimeout(resolve, 1000));
+
+			// Redirect back to upload / intake page
+			router.push("/main");
+		} catch (err) {
+			console.error("Error completing report:", err);
+			router.push("/main");
+		}
+	};
+
 	const items = caseData?.items || [];
 	const totalItems = items.length;
 
-	
 	const totalPages = useMemo(() => {
 		if (totalItems === 0) return 0;
 		return totalItems + 2;
@@ -165,18 +189,39 @@ export default function ReportPage() {
 	}
 
 	return (
-		<div className="min-h-screen bg-[#e2e8f0] print:bg-white text-slate-900 flex flex-col antialiased font-sans select-text">
+		<div className="min-h-screen bg-[#e2e8f0] print:bg-white text-slate-900 flex flex-col antialiased font-sans select-text relative">
+			{/* Complete Report Fullscreen Loading Screen */}
+			{isCompletingReport && (
+				<div className="fixed inset-0 z-100 bg-slate-950/75 backdrop-blur-md flex flex-col items-center justify-center p-4">
+					<div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-slate-200 flex flex-col items-center text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
+						<div className="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center">
+							<Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+						</div>
+						<div className="space-y-1">
+							<h3 className="text-base font-black uppercase tracking-wider text-slate-900 font-sans">
+								Completing Forensic Report
+							</h3>
+							<p className="text-xs text-slate-500 font-medium font-sans">
+								Clearing active session data and resetting workspace...
+							</p>
+						</div>
+					</div>
+				</div>
+			)}
+
 			{/* 1. Fixed Floating Top Toolbar */}
 			<ReportToolbar
 				reportNo={`${caseData.caseNumber || "KIL-0417-2026"}-R1`}
 				caseNumber={caseData.caseNumber || "KIL-0417-2026"}
 				zoomLevel={zoomLevel}
 				isGeneratingPdf={isGeneratingPdf}
+				isCompleting={isCompletingReport}
 				onZoomIn={handleZoomIn}
 				onZoomOut={handleZoomOut}
 				onZoomReset={handleZoomReset}
 				onPrint={handlePrint}
 				onDownloadPdf={handleDownloadPdf}
+				onCompleteReport={handleCompleteReport}
 			/>
 
 			{/* 2. Word-like Document Canvas: Discrete 1-to-1 A4 Sheets */}
