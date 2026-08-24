@@ -71,7 +71,10 @@ export interface BatchDetectionResponse {
 export async function loginUser(username: string, password: string): Promise<TokenResponse> {
   const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "ngrok-skip-browser-warning": "true",
+    },
     body: JSON.stringify({ username, password }),
   });
 
@@ -85,7 +88,10 @@ export async function loginUser(username: string, password: string): Promise<Tok
 
 export async function getCurrentUser(token: string): Promise<User> {
   const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "ngrok-skip-browser-warning": "true",
+    },
   });
 
   if (!res.ok) {
@@ -105,6 +111,7 @@ export async function createInvestigator(
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
+      "ngrok-skip-browser-warning": "true",
     },
     body: JSON.stringify({ username, password }),
   });
@@ -119,7 +126,10 @@ export async function createInvestigator(
 
 export async function getMyInvestigators(token: string): Promise<User[]> {
   const res = await fetch(`${API_BASE_URL}/api/users/investigators`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "ngrok-skip-browser-warning": "true",
+    },
   });
 
   if (!res.ok) {
@@ -149,6 +159,9 @@ export async function analyzeEvidenceImages(
 
   const res = await fetch(`${API_BASE_URL}/api/detection/analyze`, {
     method: "POST",
+    headers: {
+      "ngrok-skip-browser-warning": "true",
+    },
     body: formData,
   });
 
@@ -213,6 +226,7 @@ export async function saveCaseSession(
   const authToken = token || getStoredAuthToken();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    "ngrok-skip-browser-warning": "true",
   };
   if (authToken) {
     headers["Authorization"] = `Bearer ${authToken}`;
@@ -242,7 +256,9 @@ export async function getHistorySessions(
   token?: string
 ): Promise<HistoryResponse> {
   const authToken = token || getStoredAuthToken();
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = {
+    "ngrok-skip-browser-warning": "true",
+  };
   if (authToken) {
     headers["Authorization"] = `Bearer ${authToken}`;
   }
@@ -272,7 +288,9 @@ export async function deleteCaseSession(
   token?: string
 ): Promise<void> {
   const authToken = token || getStoredAuthToken();
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = {
+    "ngrok-skip-browser-warning": "true",
+  };
   if (authToken) {
     headers["Authorization"] = `Bearer ${authToken}`;
   }
