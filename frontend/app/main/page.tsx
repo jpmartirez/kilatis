@@ -139,7 +139,7 @@ export default function MainPage() {
       const payload = {
         caseNumber,
         caseTitle,
-        investigatorName: investigatorUsername || investigatorName,
+        investigatorName: investigatorName.trim() || investigatorUsername || "INVESTIGATOR",
         caseNotes,
         analyzedAt: new Date().toISOString(),
         items: itemsWithPreviews,
