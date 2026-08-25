@@ -1,7 +1,6 @@
-"use client";
-
 import React from "react";
-import { ArrowLeft, RotateCcw } from "lucide-react";
+import Image from "next/image";
+import { ArrowLeft } from "lucide-react";
 
 interface HistoryHeaderProps {
   onBack: () => void;
@@ -24,9 +23,14 @@ export const HistoryHeader: React.FC<HistoryHeaderProps> = ({ onBack }) => {
 
       {/* Large Navy Title Banner */}
       <div className="bg-[#2a3c4d] text-white px-6 py-4 rounded-2xl flex items-center gap-3.5 shadow-sm">
-        <div className="w-8 h-8 rounded-full bg-[#1d2b38] flex items-center justify-center shrink-0 border border-slate-600">
-          <RotateCcw className="w-4 h-4 text-slate-100" />
-        </div>
+        <Image
+          src="/kilatisLogo.png"
+          alt="KILATIS Logo"
+          width={36}
+          height={36}
+          className="w-8 h-8 sm:w-9 sm:h-9 object-contain shrink-0 drop-shadow-xs"
+          priority
+        />
         <h1 className="text-lg sm:text-xl md:text-2xl font-black uppercase tracking-wide font-sans">
           HISTORY SESSIONS
         </h1>

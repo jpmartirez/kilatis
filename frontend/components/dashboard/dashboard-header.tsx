@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { LogOut, User as UserIcon, History } from "lucide-react";
 
 interface DashboardHeaderProps {
@@ -17,24 +18,16 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
   return (
     <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 w-full">
-      {/* Left Title with Shield/Scanner Icon */}
+      {/* Left Title with Kilatis Logo */}
       <div className="flex items-center gap-3">
-        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0 shadow-sm">
-          <svg
-            className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-white"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            {/* Custom forensic/shield/image icon */}
-            <rect width="18" height="18" x="3" y="3" rx="4" />
-            <circle cx="9" cy="9" r="2" />
-            <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
-          </svg>
-        </div>
+        <Image
+          src="/kilatisLogo.png"
+          alt="KILATIS Logo"
+          width={40}
+          height={40}
+          className="w-9 h-9 sm:w-10 sm:h-10 object-contain shrink-0 drop-shadow-xs"
+          priority
+        />
 
         <h1 className="text-lg sm:text-xl md:text-2xl font-black tracking-wide text-slate-900 uppercase">
           INITIALIZE IMAGE EVIDENCE

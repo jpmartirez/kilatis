@@ -1,7 +1,6 @@
-"use client";
-
 import React from "react";
-import { User as UserIcon, LogOut } from "lucide-react";
+import Image from "next/image";
+import { LogOut } from "lucide-react";
 
 interface AdminHeaderProps {
   adminUsername?: string;
@@ -16,9 +15,14 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
     <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 pb-2">
       {/* Left: Icon + Title */}
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-white shrink-0 shadow-xs">
-          <UserIcon className="w-4 h-4 fill-white" />
-        </div>
+        <Image
+          src="/kilatisLogo.png"
+          alt="KILATIS Logo"
+          width={36}
+          height={36}
+          className="w-8 h-8 sm:w-9 sm:h-9 object-contain shrink-0 drop-shadow-xs"
+          priority
+        />
         <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-950 uppercase font-sans">
           ADMIN PAGE
         </h1>

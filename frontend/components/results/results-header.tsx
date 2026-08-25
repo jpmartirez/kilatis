@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 
 interface ResultsHeaderProps {
@@ -21,9 +22,14 @@ export const ResultsHeader: React.FC<ResultsHeaderProps> = ({
       {/* Logo Pill */}
       <div className="bg-white rounded-full px-5 py-2.5 shadow-xs border border-slate-200/80 flex items-center justify-between md:justify-start gap-3 shrink-0">
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded-full bg-slate-300 flex items-center justify-center">
-            <div className="w-2.5 h-2.5 rounded-full bg-slate-600" />
-          </div>
+          <Image
+            src="/kilatisLogo.png"
+            alt="KILATIS Logo"
+            width={24}
+            height={24}
+            className="w-5 h-5 sm:w-6 sm:h-6 object-contain shrink-0"
+            priority
+          />
           <span className="font-black text-sm tracking-widest text-slate-800 uppercase">
             KILATIS
           </span>

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { Printer, Download, FileText, ArrowLeft, ZoomIn, ZoomOut, RotateCcw, Loader2 } from "lucide-react";
 import Link from "next/link";
 
@@ -37,8 +38,22 @@ export const ReportToolbar: React.FC<ReportToolbarProps> = ({
   return (
     <header className="sticky top-0 z-50 w-full bg-[#f1f5f9]/95 backdrop-blur-md border-b border-slate-300/80 shadow-xs py-2 px-3 sm:px-6 print:hidden">
       <div className="max-w-[96rem] mx-auto flex items-center justify-between gap-2 sm:gap-4">
-        {/* Left: Back button + Dark Capsule with REPORT NO & CASE NO */}
+        {/* Left: Brand Logo + Back button + Dark Capsule with REPORT NO & CASE NO */}
         <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          <div className="hidden sm:flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-slate-300 shadow-2xs">
+            <Image
+              src="/kilatisLogo.png"
+              alt="KILATIS Logo"
+              width={20}
+              height={20}
+              className="w-5 h-5 object-contain shrink-0"
+              priority
+            />
+            <span className="font-black text-xs tracking-wider text-slate-900 uppercase">
+              KILATIS
+            </span>
+          </div>
+
           <Link
             href="/results"
             className="flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-slate-900 bg-white border border-slate-300 hover:bg-slate-50 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-full transition-colors shadow-2xs cursor-pointer"
