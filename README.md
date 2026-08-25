@@ -1,5 +1,12 @@
 # KILATIS: Dual-Branch Digital Image Forensics and Synthesis Detection System
 
+![Project Status](https://img.shields.io/badge/Status-Thesis_Project-blue)
+![Backend](https://img.shields.io/badge/Backend-FastAPI-009688)
+![Frontend](https://img.shields.io/badge/Frontend-Next.js%2016%20%2B%20React%2019-black)
+![Desktop](https://img.shields.io/badge/Desktop-Tauri%20v2%20%28Rust%29-24C8D8)
+![AI Engine](https://img.shields.io/badge/AI%20Inference-PyTorch%20%2B%20TruFor-EE4C2C)
+![Database](https://img.shields.io/badge/Database-PostgreSQL%20%28Neon%29-336791)
+
 An integrated forensic image authentication platform engineered for multi-modal forgery detection, tamper localization, and automated forensic report generation.
 
 ---
