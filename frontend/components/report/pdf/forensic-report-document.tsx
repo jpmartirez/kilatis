@@ -647,29 +647,12 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 												<Text
 													style={[styles.paragraphText, { marginBottom: 4 }]}
 												>
-													{isDeepfake ? (
-														<>
-															Multi-branch neural analysis detected structural
-															artifacts in the{" "}
-															<Text style={{ fontFamily: "Helvetica-Bold" }}>
-																facial region
-															</Text>{" "}
-															characteristic of{" "}
-															<Text style={{ fontFamily: "Helvetica-Bold" }}>
-																deepfake synthesis
-															</Text>
-															.
-														</>
-													) : (
-														<>
-															Multi-branch neural analysis detected structural
-															artifacts characteristic of{" "}
-															<Text style={{ fontFamily: "Helvetica-Bold" }}>
-																AI-generated / synthetic image content
-															</Text>
-															.
-														</>
-													)}
+													Multi-branch neural analysis detected structural
+													artifacts characteristic of{" "}
+													<Text style={{ fontFamily: "Helvetica-Bold" }}>
+														AI-generated / deepfake synthesis
+													</Text>{" "}
+													across spatial, frequency, and facial structures.
 												</Text>
 												<Text
 													style={{
@@ -678,9 +661,10 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 														lineHeight: 1.3,
 													}}
 												>
-													{isDeepfake
-														? "The finding is driven by face-crop tiling analysis detecting generative fingerprint patterns localized to the facial region."
-														: "The finding is driven by frequency domain irregularities and convolutional generative fingerprint patterns detected across whole-image tiles."}
+													The finding is driven by frequency domain
+													irregularities, convolutional generative fingerprint
+													patterns, and synthesis anomalies detected across
+													image tiles and facial regions.
 												</Text>
 											</>
 										) : (

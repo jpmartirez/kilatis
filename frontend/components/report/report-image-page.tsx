@@ -122,17 +122,11 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
             ) : isAi ? (
               <>
                 <p>
-                  {isDeepfake ? (
-                    <>Multi-branch neural analysis detected structural artifacts in the <strong>facial region</strong> characteristic of <strong>deepfake synthesis</strong>.</>
-                  ) : (
-                    <>Multi-branch neural analysis detected structural artifacts characteristic of <strong>AI-generated / synthetic image content</strong>.</>
-                  )}
+                  Multi-branch neural analysis detected structural artifacts characteristic of{" "}
+                  <strong>AI-generated / deepfake synthesis</strong> across spatial, frequency, and facial structures.
                 </p>
                 <p className="text-slate-600 text-[9.5px]">
-                  {isDeepfake
-                    ? "The finding is driven by face-crop tiling analysis detecting generative fingerprint patterns localized to the facial region."
-                    : "The finding is driven by frequency domain irregularities and convolutional generative fingerprint patterns detected across whole-image tiles."
-                  }
+                  The finding is driven by frequency domain irregularities, convolutional generative fingerprint patterns, and synthesis anomalies detected across image tiles and facial regions.
                 </p>
               </>
             ) : isAuthentic ? (
