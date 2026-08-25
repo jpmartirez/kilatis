@@ -60,7 +60,7 @@ class Axis:
 class Quality:
     ai_ok: bool = True
     splice_ok: bool = True
-    degrade: bool = False               # screenshot / re-render -> tier everything down
+    degrade: bool = False               
     notes: list[str] = field(default_factory=list)
 
 

@@ -17,13 +17,7 @@ def resolve_final_label(
     face_manipulated: bool,
     edit_type: str | None = None,
 ) -> Cls:
-    """
-    Resolves the canonical label based on forgery detection evidence:
-      - Manipulated face in photo -> DEEPFAKE
-      - Entire image synthesized -> AI_GENERATED
-      - Classic edits -> SPLICED / COPYMOVE / INPAINTED
-      - Clean photo -> AUTHENTIC
-    """
+    
     if face_manipulated:
         return Cls.DEEPFAKE
     if whole_image_synthetic:

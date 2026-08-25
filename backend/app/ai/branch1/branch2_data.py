@@ -1,20 +1,4 @@
-"""
-branch2_data.py  (v2 — laundering augmentation)
-===============================================
-Same as the original Branch 2 data pipeline, with ONE change:
 
-  the old mild _jpeg_recompress (q70-100) is replaced by _launder(), a stronger
-  augmentation that simulates real-world image laundering (Messenger / web
-  re-share / screenshot): down/up resize + aggressive JPEG (q60-90) + occasional
-  double-compression. Applied EQUALLY to both classes at load time, so
-  "recompressed/blurry" never becomes a class tell — this is what makes the
-  detector survive laundered real photos (the Messenger false-positive problem).
-
-Everything else (native-res crop-not-resize, spatial/frequency/wavelet views,
-WeightedRandomSampler balancing) is unchanged.
-
-Deps (Kaggle/Colab):  pip install timm PyWavelets
-"""
 from __future__ import annotations
 import numpy as np
 import pandas as pd
@@ -25,7 +9,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
-Image.MAX_IMAGE_PIXELS = None          # never choke on a large image
+Image.MAX_IMAGE_PIXELS = None          
 import io
 from kilatis_labels import Cls, branch2_target
 
@@ -37,10 +21,9 @@ SIZE = 256
 LAUNDER_PROB = 0.6
 
 
-# ---------- domain transforms (numpy, run in worker processes) --------------
+#  domain transforms (numpy, run in worker processes) 
 def _to_256_rgb(path: str, train: bool, rng: np.random.Generator) -> np.ndarray:
-    """Load -> HxWx3 uint8 -> 256x256 via crop (reflect-pad if small).
-    NOTE: crop, not resize — preserves native-resolution forensic detail."""
+    """Load -> HxWx3 uint8 -> 256x256 via crop (reflect-pad if small)."""
     img = Image.open(path).convert("RGB")
     a = np.asarray(img)
     h, w = a.shape[:2]
@@ -121,7 +104,7 @@ def _wavelet(a: np.ndarray) -> np.ndarray:
     return np.stack(subs, 0).astype(np.float32)
 
 
-# ---------- Dataset ---------------------------------------------------------
+#  Dataset 
 class Branch2Dataset(Dataset):
     def __init__(self, csv_path: str, train: bool = True, launder: bool = True):
         self.df = pd.read_csv(csv_path)

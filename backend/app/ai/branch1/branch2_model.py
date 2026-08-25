@@ -1,48 +1,29 @@
-"""
-branch2_model.py
-================
-Paper-faithful Branch 2: three EfficientNet-B0 encoders (spatial / frequency /
-wavelet) -> CDAF cross-domain fusion -> transformer backbone -> classifier,
-with the full multi-task loss (3 per-stream aux CE + fusion KL + main CE).
 
-Honest note on the "Swin" backbone
------------------------------------
-The fused representation is 64 tokens (8x8) x 256 dim. At that resolution Swin's
-shifted windows (window >= grid) collapse to plain global attention, so we use a
-compact pre-norm Transformer encoder as the backbone. It plays the exact role
-the paper assigns Swin ("hierarchical global reasoning" over fused features) and
-is far more robust than bending timm's fixed-resolution Swin onto a feature map.
-If you specifically want timm Swin, feed it an image-shaped fused map instead;
-ask and I'll wire that variant.
-
-Deps: pip install timm
-"""
 from __future__ import annotations
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import timm
 
-D = 256          # unified embedding dim
-N_CLASSES = 2    # authentic vs ai_generated
+D = 256          
+N_CLASSES = 2    
 
 
-# ---------- per-stream EfficientNet encoder ---------------------------------
+#  per-stream EfficientNet encoder 
 class StreamEncoder(nn.Module):
     def __init__(self, in_chans: int):
         super().__init__()
-        # unpooled feature map: [B,1280,8,8] at 256 input
         self.net = timm.create_model("efficientnet_b0", pretrained=True,
                                      in_chans=in_chans, num_classes=0,
                                      global_pool="")
-        self.proj = nn.Conv2d(1280, D, kernel_size=1)   # -> [B,256,8,8]
+        self.proj = nn.Conv2d(1280, D, kernel_size=1)  
 
     def forward(self, x):
-        f = self.net.forward_features(x)                # [B,1280,8,8]
-        return self.proj(f)                             # [B,256,8,8]
+        f = self.net.forward_features(x)                
+        return self.proj(f)                            
 
 
-# ---------- CDAF: spatial queries (freq + wavelet) --------------------------
+#  CDAF: spatial queries (freq + wavelet) 
 class CDAF(nn.Module):
     def __init__(self, d=D):
         super().__init__()
@@ -52,21 +33,20 @@ class CDAF(nn.Module):
 
     def forward(self, Fs, Ff, Fw):
         B, C, H, W = Fs.shape
-        fs = Fs.flatten(2).transpose(1, 2)              # [B,64,256]
+        fs = Fs.flatten(2).transpose(1, 2)              
         ff = Ff.flatten(2).transpose(1, 2)
         fw = Fw.flatten(2).transpose(1, 2)
-        kv = torch.cat([ff, fw], dim=1)                 # [B,128,256]
+        kv = torch.cat([ff, fw], dim=1)                
         Q, K, V = self.q(fs), self.k(kv), self.v(kv)
-        attn = torch.softmax(Q @ K.transpose(1, 2) / self.d ** 0.5, dim=-1)  # [B,64,128]
-        ctx = attn @ V                                  # [B,64,256]
-        # sigmoid-gated fusion (paper eq.5), gate the three contributions
+        attn = torch.softmax(Q @ K.transpose(1, 2) / self.d ** 0.5, dim=-1) 
+        ctx = attn @ V                                  
         gated = (torch.sigmoid(self.gs(fs)) * ctx
                  + torch.sigmoid(self.gf(ff)).mean(1, keepdim=True)
                  + torch.sigmoid(self.gw(fw)).mean(1, keepdim=True))
         return gated, attn                              # tokens [B,64,256], attn for KL
 
 
-# ---------- transformer backbone (Swin stand-in at 8x8) ---------------------
+#  transformer backbone (Swin stand-in at 8x8) 
 class Block(nn.Module):
     def __init__(self, d=D, heads=8, mlp=4):
         super().__init__()
@@ -87,15 +67,15 @@ class Backbone(nn.Module):
         self.blocks = nn.ModuleList([Block(d) for _ in range(depth)])
         self.norm = nn.LayerNorm(d)
 
-    def forward(self, tokens):                          # [B,64,256]
+    def forward(self, tokens):                          
         B = tokens.size(0)
-        x = torch.cat([self.cls.expand(B, -1, -1), tokens], dim=1)  # prepend CLS
+        x = torch.cat([self.cls.expand(B, -1, -1), tokens], dim=1)  
         for blk in self.blocks:
             x = blk(x)
-        return self.norm(x)[:, 0]                        # CLS -> [B,256]
+        return self.norm(x)[:, 0]                        
 
 
-# ---------- full model ------------------------------------------------------
+#  full model 
 class Branch2Net(nn.Module):
     def __init__(self):
         super().__init__()
@@ -124,7 +104,7 @@ class Branch2Net(nn.Module):
         return out
 
 
-# ---------- multi-task loss (paper eq., defaults from sec 4.2) --------------
+#  multi-task loss 
 class Branch2Loss(nn.Module):
     def __init__(self, l1=0.3, l2=0.3, l3=0.3, l4=0.2, l5=1.0, smooth=0.1):
         super().__init__()
@@ -137,7 +117,7 @@ class Branch2Loss(nn.Module):
         L_wavelet = self.ce(out["aux_w"], y)
         L_cls     = self.ce(out["main"], y)
         # L_fusion = KL(mean fusion attention || uniform)
-        p = out["attn"].mean(dim=(0, 1))                # [128]
+        p = out["attn"].mean(dim=(0, 1))               
         p = p / (p.sum() + 1e-8)
         u = torch.full_like(p, 1.0 / p.numel())
         L_fusion = (p * (p.add(1e-8).log() - u.log())).sum()

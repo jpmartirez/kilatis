@@ -1,26 +1,11 @@
-"""
-kilatis_labels.py
-=================
-THE canonical label taxonomy for the KILATIS multi-forgery pipeline.
 
-Lock this first. Every dataset-prep script, every branch, and the fusion head
-imports its class names and the boundary rule from HERE — so the definition
-lives in exactly one place and cannot silently drift.
-
-The single most important rule (build spec 4.4):
-    - ai_generated  = the WHOLE image was synthesized (GAN / diffusion).
-    - deepfake      = a manipulated FACE inside an otherwise real photo.
-A face-swap is ALWAYS 'deepfake', NEVER 'ai_generated'. This is enforced by
-resolve_final_label() below so a mislabel is impossible if you route through it.
-"""
 
 from __future__ import annotations
 from enum import IntEnum
 
 
-# --------------------------------------------------------------------------- #
+
 # 1. The canonical classes (the fusion head's output space)
-# --------------------------------------------------------------------------- #
 class Cls(IntEnum):
     AUTHENTIC   = 0
     SPLICED     = 1   # region pasted from a different image
@@ -42,32 +27,15 @@ BRANCH3_CLASSES = {Cls.AUTHENTIC, Cls.DEEPFAKE}                              # m
 MASK_CLASSES = {Cls.SPLICED, Cls.COPYMOVE, Cls.INPAINTED}
 
 
-# --------------------------------------------------------------------------- #
 # 2. The boundary rule — resolve a final label from raw evidence
-# --------------------------------------------------------------------------- #
+
 def resolve_final_label(
     *,
     whole_image_synthetic: bool,
     face_manipulated: bool,
     edit_type: str | None = None,
 ) -> Cls:
-    """
-    Turn raw dataset facts into ONE canonical label, enforcing the
-    ai_generated vs deepfake boundary so it can never be mislabeled.
-
-    Args:
-        whole_image_synthetic: the entire image was generated (GAN/diffusion).
-        face_manipulated:      a face region was swapped/reenacted on a real photo.
-        edit_type:             one of {'spliced','copymove','inpainted'} for
-                               classic edits, else None.
-
-    Priority (most specific wins):
-        face swap  ->  DEEPFAKE       (even though a face-swap is 'AI', it is
-                                       NOT whole-image synthesis)
-        whole synth->  AI_GENERATED
-        edit       ->  SPLICED/COPYMOVE/INPAINTED
-        otherwise  ->  AUTHENTIC
-    """
+    
     if face_manipulated:
         return Cls.DEEPFAKE
     if whole_image_synthetic:
@@ -84,27 +52,22 @@ def resolve_final_label(
     return Cls.AUTHENTIC
 
 
-# --------------------------------------------------------------------------- #
 # 3. Per-branch binary target derivation (used when training each branch)
-# --------------------------------------------------------------------------- #
+
 def branch1_target(final: Cls) -> int:
-    """1 if this sample is a classic edit Branch 1 should localize, else 0."""
     return int(final in MASK_CLASSES)
 
 
 def branch2_target(final: Cls) -> int:
-    """1 if whole-image AI. NOTE: deepfakes are 0 here — they belong to B3."""
     return int(final == Cls.AI_GENERATED)
 
 
 def branch3_target(final: Cls) -> int:
-    """1 if face-swap deepfake, else 0."""
     return int(final == Cls.DEEPFAKE)
 
 
-# --------------------------------------------------------------------------- #
 # 4. Self-check — run `python kilatis_labels.py` to verify the boundary holds
-# --------------------------------------------------------------------------- #
+
 if __name__ == "__main__":
     # a face-swap must resolve to DEEPFAKE, never AI_GENERATED
     fs = resolve_final_label(whole_image_synthetic=True, face_manipulated=True)
