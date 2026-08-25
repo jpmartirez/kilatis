@@ -456,7 +456,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 						</View>
 					</View>
 
-					{/* ③ CASE DESCRIPTION/NOTES (Fills remaining space) */}
+					{/* CASE DESCRIPTION/NOTES (Fills remaining space) */}
 					<View
 						style={[
 							styles.sectionCard,
