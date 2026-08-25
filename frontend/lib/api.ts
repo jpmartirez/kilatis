@@ -139,6 +139,49 @@ export async function getMyInvestigators(token: string): Promise<User[]> {
   return res.json();
 }
 
+export async function resetInvestigatorPassword(
+  token: string,
+  userId: string,
+  newPassword: string
+): Promise<{ message: string }> {
+  const res = await fetch(`${API_BASE_URL}/api/users/investigator/${userId}/reset-password`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      "ngrok-skip-browser-warning": "true",
+    },
+    body: JSON.stringify({ new_password: newPassword }),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ detail: "Failed to reset password" }));
+    throw new Error(errorData.detail || "Failed to reset investigator password");
+  }
+
+  return res.json();
+}
+
+export async function deleteInvestigator(
+  token: string,
+  userId: string
+): Promise<{ message: string }> {
+  const res = await fetch(`${API_BASE_URL}/api/users/investigator/${userId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "ngrok-skip-browser-warning": "true",
+    },
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ detail: "Failed to delete investigator" }));
+    throw new Error(errorData.detail || "Failed to delete investigator account");
+  }
+
+  return res.json();
+}
+
 export async function analyzeEvidenceImages(
   files: File[],
   metadata: {

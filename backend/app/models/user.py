@@ -39,6 +39,10 @@ class InvestigatorCreate(SQLModel):
     username: str
     password: str
 
+class InvestigatorResetPassword(SQLModel):
+    new_password: str
+
+
 class UserRead(SQLModel):
     id: str
     username: str
