@@ -902,8 +902,29 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 														}}
 													>
 														{item.sha256
-															? item.sha256.substring(0, 16) + "..."
-															: "4f9a1eddfgdgoo..."}
+															? item.sha256.substring(0, 12) + "..."
+															: item.metadata?.sha256
+															? item.metadata.sha256.substring(0, 12) + "..."
+															: "N/A"}
+													</Text>
+												</Text>
+												<Text
+													style={{
+														fontSize: 7,
+														color: "#64748b",
+														marginTop: 3,
+													}}
+												>
+													Camera:{" "}
+													<Text
+														style={{
+															color: "#0f172a",
+															fontFamily: "Helvetica-Bold",
+														}}
+													>
+														{item.metadata?.cameraMake && item.metadata.cameraMake !== "N/A"
+															? `${item.metadata.cameraMake} ${item.metadata.cameraModel !== "N/A" ? item.metadata.cameraModel : ""}`.trim()
+															: item.metadata?.cameraModel || "N/A"}
 													</Text>
 												</Text>
 												<Text
@@ -920,7 +941,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 															fontFamily: "Helvetica-Bold",
 														}}
 													>
-														ADOBE Photoshop
+														{item.metadata?.software || "N/A"}
 													</Text>
 												</Text>
 												<Text
@@ -930,31 +951,14 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 														marginTop: 3,
 													}}
 												>
-													DateTimeOriginal:{" "}
+													DateOriginal:{" "}
 													<Text
 														style={{
 															color: "#0f172a",
 															fontFamily: "Helvetica-Bold",
 														}}
 													>
-														N/A
-													</Text>
-												</Text>
-												<Text
-													style={{
-														fontSize: 7,
-														color: "#64748b",
-														marginTop: 3,
-													}}
-												>
-													GPSLatitude:{" "}
-													<Text
-														style={{
-															color: "#0f172a",
-															fontFamily: "Helvetica-Bold",
-														}}
-													>
-														N/A
+														{item.metadata?.dateOriginal || "N/A"}
 													</Text>
 												</Text>
 											</View>
@@ -967,9 +971,10 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 															fontFamily: "Helvetica-Bold",
 														}}
 													>
-														{item.fileSize
-															? `${(item.fileSize / 1024).toFixed(1)} KB`
-															: "N/A"}
+														{item.metadata?.fileSize ||
+															(item.fileSize
+																? `${(item.fileSize / 1024).toFixed(1)} KB`
+																: "N/A")}
 													</Text>
 												</Text>
 												<Text
@@ -986,7 +991,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 															fontFamily: "Helvetica-Bold",
 														}}
 													>
-														{item.dimensions || "N/A"}
+														{item.dimensions || item.metadata?.dimensions || "N/A"}
 													</Text>
 												</Text>
 												<Text
@@ -1003,7 +1008,8 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 															fontFamily: "Helvetica-Bold",
 														}}
 													>
-														{item.fileType?.toUpperCase().split("/")[1] ||
+														{item.metadata?.fileType ||
+															item.fileType?.toUpperCase().split("/")[1] ||
 															"JPEG"}
 													</Text>
 												</Text>
@@ -1014,14 +1020,14 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 														marginTop: 3,
 													}}
 												>
-													GPSLongitude:{" "}
+													GPS:{" "}
 													<Text
 														style={{
 															color: "#0f172a",
 															fontFamily: "Helvetica-Bold",
 														}}
 													>
-														N/A
+														{item.metadata?.gpsCoordinates || "N/A"}
 													</Text>
 												</Text>
 											</View>

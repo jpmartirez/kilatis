@@ -315,26 +315,48 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
               <div className="space-y-1">
                 <div className="flex items-start justify-between gap-1">
                   <span className="text-slate-600 font-medium">SHA-256:</span>
-                  <span className="font-bold text-slate-900 font-mono text-[8.5px] truncate max-w-25">
-                    {item.sha256 || "4f9a1eddfgdgoo47nsc8021bd3e21c"}
+                  <span
+                    className="font-bold text-slate-900 font-mono text-[8.5px] truncate max-w-28"
+                    title={item.sha256 || item.metadata?.sha256 || "N/A"}
+                  >
+                    {item.sha256
+                      ? `${item.sha256.substring(0, 14)}...`
+                      : item.metadata?.sha256
+                      ? `${item.metadata.sha256.substring(0, 14)}...`
+                      : "N/A"}
+                  </span>
+                </div>
+                <div className="flex items-start justify-between gap-1">
+                  <span className="text-slate-600 font-medium">Camera:</span>
+                  <span
+                    className="font-bold text-slate-900 truncate max-w-28"
+                    title={
+                      item.metadata?.cameraMake && item.metadata.cameraMake !== "N/A"
+                        ? `${item.metadata.cameraMake} ${item.metadata.cameraModel !== "N/A" ? item.metadata.cameraModel : ""}`.trim()
+                        : item.metadata?.cameraModel || "N/A"
+                    }
+                  >
+                    {item.metadata?.cameraMake && item.metadata.cameraMake !== "N/A"
+                      ? `${item.metadata.cameraMake} ${item.metadata.cameraModel !== "N/A" ? item.metadata.cameraModel : ""}`.trim()
+                      : item.metadata?.cameraModel || "N/A"}
                   </span>
                 </div>
                 <div className="flex items-start justify-between gap-1">
                   <span className="text-slate-600 font-medium">Software:</span>
-                  <span className="font-bold text-slate-900">
-                    ADOBE Photoshop
+                  <span
+                    className="font-bold text-slate-900 truncate max-w-28"
+                    title={item.metadata?.software || "N/A"}
+                  >
+                    {item.metadata?.software || "N/A"}
                   </span>
                 </div>
                 <div className="flex items-start justify-between gap-1">
-                  <span className="text-slate-600 font-medium">DateTimeOriginal:</span>
-                  <span className="font-bold text-slate-900">
-                    N/A
-                  </span>
-                </div>
-                <div className="flex items-start justify-between gap-1">
-                  <span className="text-slate-600 font-medium">GPSLatitude:</span>
-                  <span className="font-bold text-slate-900">
-                    N/A
+                  <span className="text-slate-600 font-medium">DateOriginal:</span>
+                  <span
+                    className="font-bold text-slate-900 font-mono text-[8.5px] truncate max-w-28"
+                    title={item.metadata?.dateOriginal || "N/A"}
+                  >
+                    {item.metadata?.dateOriginal || "N/A"}
                   </span>
                 </div>
               </div>
@@ -343,25 +365,31 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
                 <div className="flex items-start justify-between gap-1">
                   <span className="text-slate-600 font-medium">File Size:</span>
                   <span className="font-bold text-slate-900">
-                    {item.fileSize ? `${(item.fileSize / 1024).toFixed(1)} KB` : "N/A"}
+                    {item.metadata?.fileSize ||
+                      (item.fileSize ? `${(item.fileSize / 1024).toFixed(1)} KB` : "N/A")}
                   </span>
                 </div>
                 <div className="flex items-start justify-between gap-1">
                   <span className="text-slate-600 font-medium">Dimensions:</span>
-                  <span className="font-bold text-slate-900">
-                    {item.dimensions || "N/A"}
+                  <span className="font-bold text-slate-900 font-mono">
+                    {item.dimensions || item.metadata?.dimensions || "N/A"}
                   </span>
                 </div>
                 <div className="flex items-start justify-between gap-1">
                   <span className="text-slate-600 font-medium">Format:</span>
                   <span className="font-bold text-slate-900">
-                    {item.fileType?.toUpperCase().split("/")[1] || "JPEG"}
+                    {item.metadata?.fileType ||
+                      item.fileType?.toUpperCase().split("/")[1] ||
+                      "JPEG"}
                   </span>
                 </div>
                 <div className="flex items-start justify-between gap-1">
-                  <span className="text-slate-600 font-medium">GPSLongitude:</span>
-                  <span className="font-bold text-slate-900">
-                    N/A
+                  <span className="text-slate-600 font-medium">GPS:</span>
+                  <span
+                    className="font-bold text-slate-900 font-mono text-[8.5px] truncate max-w-28"
+                    title={item.metadata?.gpsCoordinates || "N/A"}
+                  >
+                    {item.metadata?.gpsCoordinates || "N/A"}
                   </span>
                 </div>
               </div>

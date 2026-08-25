@@ -1,4 +1,5 @@
 import { ImageAnalysisResult } from "@/lib/api";
+import { ForensicMetadata } from "@/lib/metadata-extractor";
 
 export interface StoredResultItem {
   result: ImageAnalysisResult;
@@ -8,6 +9,7 @@ export interface StoredResultItem {
   fileType?: string;
   sha256?: string;
   dimensions?: string;
+  metadata?: ForensicMetadata;
 }
 
 export interface StoredResultsPayload {

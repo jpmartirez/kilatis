@@ -18,6 +18,8 @@ import {
 } from "@/components/dashboard/upload-evidence-section";
 import { AcknowledgementSection } from "@/components/dashboard/acknowledgement-section";
 
+import { extractForensicMetadata } from "@/lib/metadata-extractor";
+
 const fileToDataUrl = (file: File): Promise<string> => {
 	return new Promise((resolve) => {
 		const reader = new FileReader();
@@ -129,21 +131,29 @@ export default function MainPage() {
 				},
 			);
 
-			// Prepare items with data URLs so images persist when routed to /results
+			// Prepare items with data URLs and dynamic forensic EXIF metadata
 			const itemsWithPreviews = await Promise.all(
 				res.results.map(async (resultItem, index) => {
 					const originalItem = evidenceFiles[index];
 					let dataUrl = "";
+					let meta = undefined;
+
 					if (originalItem?.file) {
-						dataUrl = await fileToDataUrl(originalItem.file);
+						[dataUrl, meta] = await Promise.all([
+							fileToDataUrl(originalItem.file),
+							extractForensicMetadata(originalItem.file),
+						]);
 					}
+
 					return {
 						result: resultItem,
 						previewUrl: dataUrl || originalItem?.previewUrl || "",
 						originalName: originalItem?.file?.name || resultItem.filename,
 						fileSize: originalItem?.file?.size,
 						fileType: originalItem?.file?.type,
-						dimensions: "1920 X 1080",
+						sha256: meta?.sha256,
+						dimensions: meta?.dimensions || "N/A",
+						metadata: meta,
 					};
 				}),
 			);
