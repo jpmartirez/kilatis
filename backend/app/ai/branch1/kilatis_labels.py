@@ -1,5 +1,4 @@
 
-
 from __future__ import annotations
 from enum import IntEnum
 
@@ -9,22 +8,20 @@ from enum import IntEnum
 class Cls(IntEnum):
     AUTHENTIC   = 0
     SPLICED     = 1   # region pasted from a different image
-    COPYMOVE    = 2   # region cloned from within the same image
-    INPAINTED   = 3   # region removed/filled (incl. AI inpainting of a real photo)
-    AI_GENERATED = 4  # entire image synthesized
-    DEEPFAKE    = 5   # face-swap / reenactment on a real photo
+    AI_GENERATED = 2  # entire image synthesized
+    DEEPFAKE    = 3   # face-swap / reenactment on a real photo
 
 
 ID_TO_NAME = {c.value: c.name.lower() for c in Cls}
 NAME_TO_ID = {v: k for k, v in ID_TO_NAME.items()}
 
 # Which classes each branch is responsible for producing evidence about.
-BRANCH1_CLASSES = {Cls.AUTHENTIC, Cls.SPLICED, Cls.COPYMOVE, Cls.INPAINTED}  # + mask
+BRANCH1_CLASSES = {Cls.AUTHENTIC, Cls.SPLICED}  # + mask
 BRANCH2_CLASSES = {Cls.AUTHENTIC, Cls.AI_GENERATED}                          # whole-synthetic
 BRANCH3_CLASSES = {Cls.AUTHENTIC, Cls.DEEPFAKE}                              # manipulated face
 
 # Classes that carry a pixel-level ground-truth mask (Branch 1 supervision).
-MASK_CLASSES = {Cls.SPLICED, Cls.COPYMOVE, Cls.INPAINTED}
+MASK_CLASSES = {Cls.SPLICED}
 
 
 # 2. The boundary rule — resolve a final label from raw evidence

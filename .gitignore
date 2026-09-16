@@ -19,6 +19,8 @@ __pycache__/
 htmlcov/
 ai-context/
 models_int/
+docs/
+.docs/
 
 # Type checkers
 .mypy_cache/
