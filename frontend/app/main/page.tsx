@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, ArrowUpCircle } from "lucide-react";
+import { Loader2, ArrowUpCircle, Cpu, ShieldAlert } from "lucide-react";
 import {
 	getCurrentUser,
 	analyzeEvidenceImages,
@@ -17,7 +17,6 @@ import {
 	EvidenceItem,
 } from "@/components/dashboard/upload-evidence-section";
 import { AcknowledgementSection } from "@/components/dashboard/acknowledgement-section";
-
 import { extractForensicMetadata } from "@/lib/metadata-extractor";
 
 const fileToDataUrl = (file: File): Promise<string> => {
@@ -31,11 +30,9 @@ const fileToDataUrl = (file: File): Promise<string> => {
 export default function MainPage() {
 	const router = useRouter();
 
-	// Authentication & DB User State
 	const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 	const [investigatorUsername, setInvestigatorUsername] = useState<string>("");
 
-	// Form Fields (All Required)
 	const [caseNumber, setCaseNumber] = useState("");
 	const [caseTitle, setCaseTitle] = useState("");
 	const [investigatorName, setInvestigatorName] = useState("");
@@ -44,7 +41,6 @@ export default function MainPage() {
 	const [ackForensicStandards, setAckForensicStandards] = useState(false);
 	const [ackSubmissionLog, setAckSubmissionLog] = useState(false);
 
-	// Analysis & Submission State
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	useEffect(() => {
@@ -60,7 +56,6 @@ export default function MainPage() {
 			return;
 		}
 
-		// Fetch fresh user data directly from Neon PostgreSQL Database via /api/auth/me
 		const fetchUserData = async () => {
 			try {
 				const dbUser = await getCurrentUser(token);
@@ -103,7 +98,6 @@ export default function MainPage() {
 		router.replace("/");
 	};
 
-	// Validation: ALL fields are required
 	const isFormValid =
 		caseNumber.trim().length > 0 &&
 		caseTitle.trim().length > 0 &&
@@ -131,7 +125,6 @@ export default function MainPage() {
 				},
 			);
 
-			// Prepare items with data URLs and dynamic forensic EXIF metadata
 			const itemsWithPreviews = await Promise.all(
 				res.results.map(async (resultItem, index) => {
 					const originalItem = evidenceFiles[index];
@@ -178,7 +171,6 @@ export default function MainPage() {
 
 			await setStoredResults("kilatis_active_results", payload);
 
-			// Persist session metadata to Neon database for History tracking
 			saveCaseSession({
 				case_number: caseNumber,
 				case_title: caseTitle,
@@ -213,18 +205,15 @@ export default function MainPage() {
 	return (
 		<div className="min-h-screen w-full bg-[#edf2f7] text-slate-800 font-sans selection:bg-slate-800 selection:text-white py-6 sm:py-8 lg:py-10 px-4 sm:px-6 lg:px-8 overflow-y-auto">
 			<div className="max-w-4xl mx-auto space-y-5 sm:space-y-6">
-				{/* Top Header Row with Title and Active Session from Neon DB */}
 				<DashboardHeader
 					investigatorName={investigatorUsername}
 					onLogout={handleLogout}
 				/>
 
-				{/* Main Dashboard Container */}
 				<form
 					onSubmit={handleSubmit}
 					className="bg-[#e4ebf3] rounded-3xl sm:rounded-[2.5rem] p-5 sm:p-8 lg:p-10 border border-slate-300/80 shadow-md space-y-6 sm:space-y-8"
 				>
-					{/* Step 1: Case Details */}
 					<CaseDetailsSection
 						caseNumber={caseNumber}
 						setCaseNumber={setCaseNumber}
@@ -236,13 +225,11 @@ export default function MainPage() {
 						setCaseNotes={setCaseNotes}
 					/>
 
-					{/* Step 2: Upload Evidence (Multi-image & Folder Upload) */}
 					<UploadEvidenceSection
 						evidenceFiles={evidenceFiles}
 						setEvidenceFiles={setEvidenceFiles}
 					/>
 
-					{/* Step 3: Acknowledgement */}
 					<AcknowledgementSection
 						ackForensicStandards={ackForensicStandards}
 						setAckForensicStandards={setAckForensicStandards}
@@ -250,7 +237,6 @@ export default function MainPage() {
 						setAckSubmissionLog={setAckSubmissionLog}
 					/>
 
-					{/* Submit Button */}
 					<div className="pt-2">
 						<button
 							type="submit"
@@ -279,6 +265,26 @@ export default function MainPage() {
 					</div>
 				</form>
 			</div>
+
+			{isSubmitting && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 backdrop-blur-xs select-none">
+					<div className="relative w-full max-w-sm mx-4 bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 flex flex-col items-center text-center space-y-4">
+						<div className="relative flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-100 border border-slate-300 shadow-inner">
+							<Loader2 className="w-8 h-8 text-slate-600 animate-spin" />
+						</div>
+
+						<div className="space-y-1">
+							<h3 className="text-base font-black text-slate-900 tracking-wide uppercase">
+								Analyzing...
+							</h3>
+						</div>
+
+						<p className="text-[10px] text-slate-400 font-medium">
+							Please do not close this app while detection is underway.
+						</p>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }
