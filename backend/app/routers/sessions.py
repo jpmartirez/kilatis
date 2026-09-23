@@ -18,16 +18,53 @@ from app.core.deps import get_current_user
 router = APIRouter(prefix="/api/sessions", tags=["Case Sessions"])
 
 
+def generate_next_case_number_util(session: Session) -> str:
+    """
+    Automated sequential case number generator for KILATIS digital image forensics.
+    Format: KIL-YYYY-XXXX (e.g. KIL-2026-0001)
+    """
+    year = datetime.now(timezone.utc).year
+    prefix = f"KIL-{year}-"
+
+    # Query existing case numbers with current year prefix
+    statement = select(CaseSession.case_number).where(
+        col(CaseSession.case_number).startswith(prefix)
+    )
+    existing_numbers = set(session.exec(statement).all())
+
+    # Find the next available sequential index
+    index = len(existing_numbers) + 1
+    candidate = f"{prefix}{index:04d}"
+    while candidate in existing_numbers:
+        index += 1
+        candidate = f"{prefix}{index:04d}"
+
+    return candidate
+
+
+@router.get("/next-case-number")
+def get_next_case_number(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    """Fetch the next automated sequential case number for the current calendar year."""
+    return {"case_number": generate_next_case_number_util(session)}
+
+
 @router.post("/save", response_model=CaseSessionRead, status_code=status.HTTP_201_CREATED)
 def save_case_session(
     payload: CaseSessionCreate,
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
 ):
-    """Save an evaluated case session to history."""
+    """Save an evaluated case session to history. Automates case_number if empty."""
+    case_num = (payload.case_number or "").strip()
+    if not case_num:
+        case_num = generate_next_case_number_util(session)
+
     case_session = CaseSession(
         user_id=current_user.id,
-        case_number=payload.case_number,
+        case_number=case_num,
         case_title=payload.case_title,
         verdicts=payload.verdicts,
         total_images=payload.total_images,

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, ArrowUpCircle, Cpu, ShieldAlert } from "lucide-react";
 import {
 	getCurrentUser,
+	getNextCaseNumber,
 	analyzeEvidenceImages,
 	saveCaseSession,
 	BatchDetectionResponse,
@@ -34,6 +35,7 @@ export default function MainPage() {
 	const [investigatorUsername, setInvestigatorUsername] = useState<string>("");
 
 	const [caseNumber, setCaseNumber] = useState("");
+	const [isGeneratingCaseNumber, setIsGeneratingCaseNumber] = useState(false);
 	const [caseTitle, setCaseTitle] = useState("");
 	const [investigatorName, setInvestigatorName] = useState("");
 	const [caseNotes, setCaseNotes] = useState("");
@@ -58,13 +60,17 @@ export default function MainPage() {
 
 		const fetchUserData = async () => {
 			try {
-				const dbUser = await getCurrentUser(token);
+				const [dbUser, autoCaseNumber] = await Promise.all([
+					getCurrentUser(token),
+					getNextCaseNumber(token),
+				]);
 				const formattedName = dbUser.username.toUpperCase().startsWith("PLT ")
 					? dbUser.username.toUpperCase()
 					: `PLT ${dbUser.username.toUpperCase()}`;
 
 				setInvestigatorUsername(formattedName);
 				setInvestigatorName(formattedName);
+				setCaseNumber((prev) => prev || autoCaseNumber);
 				setIsCheckingAuth(false);
 			} catch (err) {
 				console.error("Failed to fetch fresh user from database:", err);
@@ -76,6 +82,9 @@ export default function MainPage() {
 					setInvestigatorUsername(formattedName);
 					setInvestigatorName(formattedName);
 					setIsCheckingAuth(false);
+					getNextCaseNumber(token).then((autoNum) =>
+						setCaseNumber((prev) => prev || autoNum)
+					);
 				} catch {
 					localStorage.removeItem("token");
 					localStorage.removeItem("user");
@@ -86,6 +95,17 @@ export default function MainPage() {
 
 		fetchUserData();
 	}, [router]);
+
+	const handleRegenerateCaseNumber = async () => {
+		setIsGeneratingCaseNumber(true);
+		try {
+			const token = localStorage.getItem("token") || undefined;
+			const nextNum = await getNextCaseNumber(token);
+			setCaseNumber(nextNum);
+		} finally {
+			setIsGeneratingCaseNumber(false);
+		}
+	};
 
 	const handleLogout = () => {
 		localStorage.removeItem("token");
@@ -223,6 +243,8 @@ export default function MainPage() {
 						setInvestigatorName={setInvestigatorName}
 						caseNotes={caseNotes}
 						setCaseNotes={setCaseNotes}
+						isGeneratingCaseNumber={isGeneratingCaseNumber}
+						onRegenerateCaseNumber={handleRegenerateCaseNumber}
 					/>
 
 					<UploadEvidenceSection

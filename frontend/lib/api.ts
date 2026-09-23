@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").trim().replace(/\/$/, "");
 
 export interface User {
   id: string;
@@ -255,6 +255,33 @@ function getStoredAuthToken(): string | null {
     localStorage.getItem("kilatis_token") ||
     localStorage.getItem("access_token")
   );
+}
+
+export async function getNextCaseNumber(token?: string): Promise<string> {
+  const authToken = token || getStoredAuthToken();
+  const headers: Record<string, string> = {
+    "ngrok-skip-browser-warning": "true",
+  };
+  if (authToken) {
+    headers["Authorization"] = `Bearer ${authToken}`;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/sessions/next-case-number`, {
+      method: "GET",
+      headers,
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.case_number) return data.case_number;
+    }
+  } catch (err) {
+    console.warn("Could not retrieve next case number from server, applying local fallback:", err);
+  }
+
+  const currentYear = new Date().getFullYear();
+  const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+  return `KIL-${currentYear}-${randomSuffix}`;
 }
 
 export async function saveCaseSession(

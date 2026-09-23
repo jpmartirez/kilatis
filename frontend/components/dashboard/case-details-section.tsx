@@ -1,6 +1,5 @@
-"use client";
-
 import React from "react";
+import { RefreshCw } from "lucide-react";
 
 interface CaseDetailsSectionProps {
   caseNumber: string;
@@ -11,6 +10,8 @@ interface CaseDetailsSectionProps {
   setInvestigatorName: (val: string) => void;
   caseNotes: string;
   setCaseNotes: (val: string) => void;
+  isGeneratingCaseNumber?: boolean;
+  onRegenerateCaseNumber?: () => void;
 }
 
 export const CaseDetailsSection: React.FC<CaseDetailsSectionProps> = ({
@@ -22,6 +23,8 @@ export const CaseDetailsSection: React.FC<CaseDetailsSectionProps> = ({
   setInvestigatorName,
   caseNotes,
   setCaseNotes,
+  isGeneratingCaseNumber = false,
+  onRegenerateCaseNumber,
 }) => {
   return (
     <section className="space-y-3">
@@ -47,24 +50,43 @@ export const CaseDetailsSection: React.FC<CaseDetailsSectionProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
           {/* Case Number */}
           <div>
-            <label
-              htmlFor="caseNumber"
-              className="block text-xs font-black text-slate-900 uppercase tracking-wider mb-2"
-            >
-              CASE NUMBER{" "}
-              <span className="text-[10px] text-red-500 font-bold ml-1 normal-case italic">
-                *Required
-              </span>
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label
+                htmlFor="caseNumber"
+                className="flex items-center gap-1.5 text-xs font-black text-slate-900 uppercase tracking-wider"
+              >
+                <span>CASE NUMBER</span>
+                <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                  Automated
+                </span>
+              </label>
+
+              {onRegenerateCaseNumber && (
+                <button
+                  type="button"
+                  onClick={onRegenerateCaseNumber}
+                  disabled={isGeneratingCaseNumber}
+                  className="text-[10px] font-bold text-slate-500 hover:text-slate-900 flex items-center gap-1 cursor-pointer transition-colors disabled:opacity-50"
+                  title="Generate new sequential case number"
+                >
+                  <RefreshCw className={`w-3 h-3 ${isGeneratingCaseNumber ? "animate-spin" : ""}`} />
+                  <span>{isGeneratingCaseNumber ? "Generating..." : "New Number"}</span>
+                </button>
+              )}
+            </div>
+
             <input
               id="caseNumber"
               type="text"
               value={caseNumber}
               onChange={(e) => setCaseNumber(e.target.value)}
-              placeholder="enter your case no. here e.g. KIL-1234-2026"
-              className="w-full bg-[#edf2f7] hover:bg-[#e7eff6] focus:bg-white text-slate-900 placeholder:text-slate-400 placeholder:text-xs text-xs sm:text-sm font-medium rounded-full h-11 sm:h-12 px-5 border border-transparent focus:border-slate-300 focus:outline-none transition-all"
+              placeholder="Generating automated case number..."
+              className="w-full bg-[#edf2f7] hover:bg-[#e7eff6] focus:bg-white text-slate-900 placeholder:text-slate-400 placeholder:text-xs text-xs sm:text-sm font-semibold tracking-wide rounded-full h-11 sm:h-12 px-5 border border-transparent focus:border-slate-300 focus:outline-none transition-all"
               required
             />
+            <p className="text-[10px] text-slate-400 mt-1 pl-2">
+              Auto-generated based on sequential KILATIS docket records (editable if needed).
+            </p>
           </div>
 
           {/* Case Title */}

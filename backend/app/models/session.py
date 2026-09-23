@@ -46,7 +46,7 @@ class CaseSession(SQLModel, table=True):
 
 
 class CaseSessionCreate(SQLModel):
-    case_number: str
+    case_number: Optional[str] = None
     case_title: str
     verdicts: List[str]
     total_images: int = 1
