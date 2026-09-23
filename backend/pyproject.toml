@@ -29,4 +29,7 @@ dependencies = [
     "matplotlib>=3.11.1",
     "pandas>=3.0.5",
     "modal>=1.5.5",
+    "pillow-heif>=1.7.0",
+    "svglib>=2.2.0",
+    "rlpycairo>=0.4.0",
 ]

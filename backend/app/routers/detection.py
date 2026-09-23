@@ -1,4 +1,5 @@
 import os
+import io
 import tempfile
 import asyncio
 from typing import List, Optional
@@ -7,6 +8,20 @@ from app.ai.kilatis_orchestrator import get_orchestrator
 from app.ai.schemas import BatchDetectionResponse, ImageAnalysisResult
 
 router = APIRouter(prefix="/api/detection", tags=["KILATIS Image Forensics"])
+
+ACCEPTED_IMAGE_EXTENSIONS = {
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".webp",
+    ".bmp",
+    ".gif",
+    ".tiff",
+    ".tif",
+    ".svg",
+    ".heic",
+    ".heif",
+}
 
 
 @router.post("/analyze", response_model=BatchDetectionResponse)
@@ -21,6 +36,7 @@ async def analyze_images(
     Receives batch evidence images, runs them through the full KILATIS dual-branch
     (AI Deepfake + TruFor Splicing Localization + Gated Decision Matrix) pipeline,
     and returns comprehensive forensic findings and localization heatmaps.
+    Supports PNG, JPG, JPEG, WEBP, BMP, GIF, TIFF, TIF, SVG, HEIC, and HEIF formats.
     """
     if not files:
         raise HTTPException(
@@ -37,7 +53,35 @@ async def analyze_images(
             continue
 
         filename = upload_file.filename or "evidence.png"
-        suffix = os.path.splitext(filename)[-1] or ".png"
+        suffix = os.path.splitext(filename)[-1].lower() or ".png"
+
+        if suffix not in ACCEPTED_IMAGE_EXTENSIONS:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"File '{filename}' has an unsupported file extension '{suffix}'. "
+                    f"Accepted formats: {', '.join(sorted(ACCEPTED_IMAGE_EXTENSIONS))}"
+                ),
+            )
+
+        # If vector SVG is uploaded, rasterize to PNG so computer vision models can analyze it
+        if suffix == ".svg":
+            try:
+                from svglib.svglib import svg2rlg
+                from reportlab.graphics import renderPM
+
+                drawing = svg2rlg(io.BytesIO(content))
+                if drawing is None:
+                    raise ValueError("Could not parse SVG vector structure")
+                png_buf = io.BytesIO()
+                renderPM.drawToFile(drawing, png_buf, fmt="PNG")
+                content = png_buf.getvalue()
+                suffix = ".png"
+            except Exception as err:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Failed to rasterize SVG image '{filename}': {err}"
+                )
 
         # Write to temporary file for TruFor / OpenCV multi-branch processing
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:

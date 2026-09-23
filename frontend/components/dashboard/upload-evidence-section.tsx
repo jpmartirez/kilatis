@@ -133,7 +133,7 @@ export const UploadEvidenceSection: React.FC<UploadEvidenceSectionProps> = ({
         ref={fileInputRef}
         type="file"
         multiple
-        accept="image/png, image/jpeg, image/jpg, image/webp, image/gif, image/bmp, image/tiff"
+        accept="image/png, image/jpeg, image/jpg, image/webp, image/gif, image/bmp, image/tiff, image/heic, image/heif, image/svg+xml, .png, .jpg, .jpeg, .webp, .bmp, .gif, .tiff, .tif, .svg, .heic, .heif"
         onChange={handleFileChange}
         className="hidden"
         id="evidence-multi-files-input"

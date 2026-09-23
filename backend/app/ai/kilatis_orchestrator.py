@@ -11,7 +11,9 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from PIL import Image, ImageOps, ImageFile
+import pillow_heif
 
+pillow_heif.register_heif_opener()
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 Image.MAX_IMAGE_PIXELS = None
 

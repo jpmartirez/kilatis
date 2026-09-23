@@ -1,3 +1,6 @@
+import pillow_heif
+pillow_heif.register_heif_opener()
+
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware

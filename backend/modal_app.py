@@ -4,7 +4,7 @@ app = modal.App("kilatis-backend")
 
 image = (
     modal.Image.debian_slim(python_version="3.12")
-    .apt_install("libgl1-mesa-glx", "libglib2.0-0")
+    .apt_install("libgl1", "libglib2.0-0", "libcairo2-dev", "pkg-config", "build-essential")
     .pip_install(
         # Web & API
         "fastapi[standard]",
@@ -23,11 +23,14 @@ image = (
         "pyyaml",
         "pandas",
         "matplotlib",
+        "svglib",
+        "rlpycairo",
         # AI & Computer Vision Models
         "torch",
         "torchvision",
         "numpy<2",
         "pillow",
+        "pillow-heif",
         "timm",
         "PyWavelets",
         "scipy",
@@ -39,12 +42,12 @@ image = (
     .add_local_file(".env", remote_path="/root/.env")
 )
 
+
 @app.function(
     image=image,
-    cpu=2.0,
-    memory=4096,
+    gpu="T4",
     scaledown_window=60,
-    timeout=180,
+    timeout=300,
 )
 @modal.asgi_app()
 def fastapi_app():
