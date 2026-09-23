@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, ArrowUpCircle, Cpu, ShieldAlert } from "lucide-react";
+import { Loader2, ArrowUpCircle } from "lucide-react";
 import {
 	getCurrentUser,
 	getNextCaseNumber,
