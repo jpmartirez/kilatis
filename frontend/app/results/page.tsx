@@ -4,12 +4,14 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { getStoredResults, clearStoredResults } from "@/lib/storage";
+import { getStoredResults, setStoredResults, clearStoredResults } from "@/lib/storage";
 import { StoredResultsPayload, ProbBarItem, VerdictCardData } from "@/types/results";
+import { ReportCaseData } from "@/types/report";
 import { ResultsHeader } from "@/components/results/results-header";
 import { EvidenceViewport } from "@/components/results/evidence-viewport";
 import { PerStreamEvidence } from "@/components/results/per-stream-evidence";
 import { ResultsSidebar } from "@/components/results/results-sidebar";
+import { ReportSelectionModal } from "@/components/results/report-selection-modal";
 
 export default function ResultsPage() {
   const router = useRouter();
@@ -18,6 +20,7 @@ export default function ResultsPage() {
   const [activeTab, setActiveTab] = useState<"asset" | "heatmap">("asset");
   const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isReportModalOpen, setIsReportModalOpen] = useState<boolean>(false);
 
   // Load results from persistent IndexedDB
   useEffect(() => {
@@ -62,11 +65,45 @@ export default function ResultsPage() {
   const handleNewAnalysis = async () => {
     try {
       await clearStoredResults("kilatis_active_results");
+      await clearStoredResults("kilatis_report_data");
       sessionStorage.removeItem("kilatis_active_results");
+      sessionStorage.removeItem("kilatis_report_data");
     } catch (err) {
       console.error("Error clearing results:", err);
     }
     router.push("/main");
+  };
+
+  const handleConfirmReportSelection = async (selectedIndices: number[]) => {
+    if (!data) return;
+    const selectedItems = selectedIndices.map((i) => data.items[i]).filter(Boolean);
+
+    const reportData: ReportCaseData = {
+      caseNumber: data.caseNumber,
+      caseTitle: data.caseTitle,
+      caseDate: data.caseDate,
+      caseTime: data.caseTime,
+      caseLocation: data.caseLocation,
+      investigatorName: data.investigatorName,
+      caseNotes: data.caseNotes,
+      analyzedAt: data.analyzedAt,
+      items: selectedItems,
+      summary: {
+        totalItems: selectedItems.length,
+        splicedCount: selectedItems.filter(
+          (i) => i.result.verdict === "Spliced" || i.result.verdict === "AI-generated + spliced"
+        ).length,
+        aiCount: selectedItems.filter(
+          (i) => i.result.verdict === "AI-generated / deepfake" || i.result.verdict === "AI-generated + spliced"
+        ).length,
+        authenticCount: selectedItems.filter((i) => i.result.verdict === "Authentic").length,
+        reviewCount: selectedItems.filter((i) => i.result.verdict === "Manual review").length,
+      },
+    };
+
+    await setStoredResults("kilatis_report_data", reportData);
+    setIsReportModalOpen(false);
+    router.push("/report");
   };
 
   if (isLoading || !data || !currentItem || !currentResult) {
@@ -200,10 +237,17 @@ export default function ResultsPage() {
             caseNotes={data.caseNotes}
             currentItem={currentItem}
             currentResult={currentResult}
-            onGenerateReport={() => router.push("/report")}
+            onGenerateReport={() => setIsReportModalOpen(true)}
           />
         </div>
       </div>
+
+      <ReportSelectionModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        items={data.items}
+        onConfirm={handleConfirmReportSelection}
+      />
     </div>
   );
 }

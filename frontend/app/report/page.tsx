@@ -11,7 +11,7 @@ import { ReportFirstPage } from "@/components/report/report-first-page";
 import { ReportImagePage } from "@/components/report/report-image-page";
 import { ReportLastPage } from "@/components/report/report-last-page";
 import { ForensicReportDocument } from "@/components/report/pdf/forensic-report-document";
-import { Loader2, AlertCircle, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Loader2, AlertCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 export default function ReportPage() {
@@ -44,24 +44,31 @@ export default function ReportPage() {
 	useEffect(() => {
 		async function loadData() {
 			try {
-				const stored = await getStoredResults<ReportCaseData>(
-					"kilatis_active_results",
+				// 1. Check if filtered report data exists first
+				let stored = await getStoredResults<ReportCaseData>(
+					"kilatis_report_data",
 				);
+				if (!stored || !stored.items || stored.items.length === 0) {
+					const sessReport = sessionStorage.getItem("kilatis_report_data");
+					if (sessReport) stored = JSON.parse(sessReport);
+				}
+
+				// 2. Fallback to active results if no custom selection was stored
+				if (!stored || !stored.items || stored.items.length === 0) {
+					stored = await getStoredResults<ReportCaseData>(
+						"kilatis_active_results",
+					);
+				}
+				if (!stored || !stored.items || stored.items.length === 0) {
+					const sess = sessionStorage.getItem("kilatis_active_results");
+					if (sess) stored = JSON.parse(sess);
+				}
+
 				if (stored && stored.items && stored.items.length > 0) {
 					setCaseData(stored);
 					setExaminerNotes(stored.caseNotes || "");
 					setExaminerName(stored.investigatorName || "");
 					setDateVal(formatDateStr(stored.analyzedAt));
-				} else {
-					// Fallback check sessionStorage
-					const sess = sessionStorage.getItem("kilatis_active_results");
-					if (sess) {
-						const parsed = JSON.parse(sess);
-						setCaseData(parsed);
-						setExaminerNotes(parsed.caseNotes || "");
-						setExaminerName(parsed.investigatorName || "");
-						setDateVal(formatDateStr(parsed.analyzedAt));
-					}
 				}
 			} catch (err) {
 				console.error("Failed to load report data:", err);
@@ -165,9 +172,12 @@ export default function ReportPage() {
 		try {
 			// Clear active forensic case results from storage
 			await clearStoredResults("kilatis_active_results");
+			await clearStoredResults("kilatis_report_data");
 			if (typeof window !== "undefined") {
 				sessionStorage.removeItem("kilatis_active_results");
+				sessionStorage.removeItem("kilatis_report_data");
 				localStorage.removeItem("kilatis_active_results");
+				localStorage.removeItem("kilatis_report_data");
 			}
 
 			// Brief smooth loading transition for user feedback
