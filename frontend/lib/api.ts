@@ -225,6 +225,9 @@ export interface HistorySessionItem {
   user_id: string;
   case_number: string;
   case_title: string;
+  case_date?: string | null;
+  case_time?: string | null;
+  case_location?: string | null;
   verdicts: string[];
   total_images: number;
   created_at: string;
@@ -288,6 +291,9 @@ export async function saveCaseSession(
   payload: {
     case_number: string;
     case_title: string;
+    case_date?: string;
+    case_time?: string;
+    case_location?: string;
     verdicts: string[];
     total_images?: number;
   },
@@ -308,6 +314,9 @@ export async function saveCaseSession(
     body: JSON.stringify({
       case_number: payload.case_number,
       case_title: payload.case_title,
+      case_date: payload.case_date,
+      case_time: payload.case_time,
+      case_location: payload.case_location,
       verdicts: payload.verdicts,
       total_images: payload.total_images || 1,
     }),

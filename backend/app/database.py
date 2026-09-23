@@ -23,7 +23,13 @@ def init_db():
     from app.models import User, CaseSession  # noqa: F401
     try:
         SQLModel.metadata.create_all(engine)
-        print("Database tables initialized successfully.")
+        # Ensure new optional fields exist on existing case_sessions table
+        from sqlalchemy import text
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TABLE case_sessions ADD COLUMN IF NOT EXISTS case_date VARCHAR(255);"))
+            conn.execute(text("ALTER TABLE case_sessions ADD COLUMN IF NOT EXISTS case_time VARCHAR(255);"))
+            conn.execute(text("ALTER TABLE case_sessions ADD COLUMN IF NOT EXISTS case_location VARCHAR(255);"))
+        print("Database tables and columns initialized successfully.")
     except Exception as e:
         print(f"WARNING: Could not connect to database on startup ({e}). Will retry on API request.")
 

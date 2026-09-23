@@ -15,6 +15,9 @@ export interface StoredResultItem {
 export interface StoredResultsPayload {
   caseNumber: string;
   caseTitle: string;
+  caseDate?: string;
+  caseTime?: string;
+  caseLocation?: string;
   investigatorName: string;
   caseNotes: string;
   analyzedAt: string;

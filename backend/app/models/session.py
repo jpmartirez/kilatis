@@ -25,6 +25,18 @@ class CaseSession(SQLModel, table=True):
     case_title: str = Field(
         nullable=False
     )
+    case_date: Optional[str] = Field(
+        default=None,
+        nullable=True
+    )
+    case_time: Optional[str] = Field(
+        default=None,
+        nullable=True
+    )
+    case_location: Optional[str] = Field(
+        default=None,
+        nullable=True
+    )
     verdicts: List[str] = Field(
         default_factory=list,
         sa_type=sa.JSON,
@@ -48,6 +60,9 @@ class CaseSession(SQLModel, table=True):
 class CaseSessionCreate(SQLModel):
     case_number: Optional[str] = None
     case_title: str
+    case_date: Optional[str] = None
+    case_time: Optional[str] = None
+    case_location: Optional[str] = None
     verdicts: List[str]
     total_images: int = 1
 
@@ -57,6 +72,9 @@ class CaseSessionRead(SQLModel):
     user_id: str
     case_number: str
     case_title: str
+    case_date: Optional[str] = None
+    case_time: Optional[str] = None
+    case_location: Optional[str] = None
     verdicts: List[str]
     total_images: int
     created_at: datetime

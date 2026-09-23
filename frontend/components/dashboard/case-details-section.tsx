@@ -6,6 +6,12 @@ interface CaseDetailsSectionProps {
   setCaseNumber: (val: string) => void;
   caseTitle: string;
   setCaseTitle: (val: string) => void;
+  caseDate?: string;
+  setCaseDate?: (val: string) => void;
+  caseTime?: string;
+  setCaseTime?: (val: string) => void;
+  caseLocation?: string;
+  setCaseLocation?: (val: string) => void;
   investigatorName: string;
   setInvestigatorName: (val: string) => void;
   caseNotes: string;
@@ -19,6 +25,12 @@ export const CaseDetailsSection: React.FC<CaseDetailsSectionProps> = ({
   setCaseNumber,
   caseTitle,
   setCaseTitle,
+  caseDate = "",
+  setCaseDate,
+  caseTime = "",
+  setCaseTime,
+  caseLocation = "",
+  setCaseLocation,
   investigatorName,
   setInvestigatorName,
   caseNotes,
@@ -108,6 +120,70 @@ export const CaseDetailsSection: React.FC<CaseDetailsSectionProps> = ({
               placeholder="enter your title here e.g. CYBER BULLYING DUPAY"
               className="w-full bg-[#edf2f7] hover:bg-[#e7eff6] focus:bg-white text-slate-900 placeholder:text-slate-400 placeholder:text-xs text-xs sm:text-sm font-medium rounded-full h-11 sm:h-12 px-5 border border-transparent focus:border-slate-300 focus:outline-none transition-all"
               required
+            />
+          </div>
+        </div>
+
+        {/* Row 2: Incident Date, Time & Location (Optional) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+          {/* Incident Date */}
+          <div>
+            <label
+              htmlFor="caseDate"
+              className="block text-xs font-black text-slate-900 uppercase tracking-wider mb-2"
+            >
+              DATE OF INCIDENT{" "}
+              <span className="text-[10px] text-slate-400 font-bold ml-1 normal-case italic">
+                (Optional)
+              </span>
+            </label>
+            <input
+              id="caseDate"
+              type="date"
+              value={caseDate}
+              onChange={(e) => setCaseDate?.(e.target.value)}
+              className="w-full bg-[#edf2f7] hover:bg-[#e7eff6] focus:bg-white text-slate-900 placeholder:text-slate-400 text-xs sm:text-sm font-medium rounded-full h-11 sm:h-12 px-5 border border-transparent focus:border-slate-300 focus:outline-none transition-all"
+            />
+          </div>
+
+          {/* Incident Time */}
+          <div>
+            <label
+              htmlFor="caseTime"
+              className="block text-xs font-black text-slate-900 uppercase tracking-wider mb-2"
+            >
+              TIME OF INCIDENT{" "}
+              <span className="text-[10px] text-slate-400 font-bold ml-1 normal-case italic">
+                (Optional)
+              </span>
+            </label>
+            <input
+              id="caseTime"
+              type="time"
+              value={caseTime}
+              onChange={(e) => setCaseTime?.(e.target.value)}
+              className="w-full bg-[#edf2f7] hover:bg-[#e7eff6] focus:bg-white text-slate-900 placeholder:text-slate-400 text-xs sm:text-sm font-medium rounded-full h-11 sm:h-12 px-5 border border-transparent focus:border-slate-300 focus:outline-none transition-all"
+            />
+          </div>
+
+          {/* Incident Location */}
+          <div className="sm:col-span-2 lg:col-span-1">
+            <label
+              htmlFor="caseLocation"
+              className="block text-xs font-black text-slate-900 uppercase tracking-wider mb-2"
+            >
+              WHERE IT HAPPENED{" "}
+              <span className="text-[10px] text-slate-400 font-bold ml-1 normal-case italic">
+                (Optional)
+              </span>
+            </label>
+            <input
+              id="caseLocation"
+              type="text"
+              value={caseLocation}
+              onChange={(e) => setCaseLocation?.(e.target.value)}
+              placeholder="e.g. Quezon City, Metro Manila"
+              className="w-full bg-[#edf2f7] hover:bg-[#e7eff6] focus:bg-white text-slate-900 placeholder:text-slate-400 placeholder:text-xs text-xs sm:text-sm font-medium rounded-full h-11 sm:h-12 px-5 border border-transparent focus:border-slate-300 focus:outline-none transition-all"
             />
           </div>
         </div>

@@ -37,6 +37,9 @@ export default function MainPage() {
 	const [caseNumber, setCaseNumber] = useState("");
 	const [isGeneratingCaseNumber, setIsGeneratingCaseNumber] = useState(false);
 	const [caseTitle, setCaseTitle] = useState("");
+	const [caseDate, setCaseDate] = useState("");
+	const [caseTime, setCaseTime] = useState("");
+	const [caseLocation, setCaseLocation] = useState("");
 	const [investigatorName, setInvestigatorName] = useState("");
 	const [caseNotes, setCaseNotes] = useState("");
 	const [evidenceFiles, setEvidenceFiles] = useState<EvidenceItem[]>([]);
@@ -174,6 +177,9 @@ export default function MainPage() {
 			const payload = {
 				caseNumber,
 				caseTitle,
+				caseDate: caseDate.trim() || undefined,
+				caseTime: caseTime.trim() || undefined,
+				caseLocation: caseLocation.trim() || undefined,
 				investigatorName:
 					investigatorName.trim() || investigatorUsername || "INVESTIGATOR",
 				caseNotes,
@@ -194,6 +200,9 @@ export default function MainPage() {
 			saveCaseSession({
 				case_number: caseNumber,
 				case_title: caseTitle,
+				case_date: caseDate.trim() || undefined,
+				case_time: caseTime.trim() || undefined,
+				case_location: caseLocation.trim() || undefined,
 				verdicts: res.results.map((r) => r.verdict.toUpperCase()),
 				total_images: res.total_images,
 			}).catch((saveErr) =>
@@ -239,6 +248,12 @@ export default function MainPage() {
 						setCaseNumber={setCaseNumber}
 						caseTitle={caseTitle}
 						setCaseTitle={setCaseTitle}
+						caseDate={caseDate}
+						setCaseDate={setCaseDate}
+						caseTime={caseTime}
+						setCaseTime={setCaseTime}
+						caseLocation={caseLocation}
+						setCaseLocation={setCaseLocation}
 						investigatorName={investigatorName}
 						setInvestigatorName={setInvestigatorName}
 						caseNotes={caseNotes}
