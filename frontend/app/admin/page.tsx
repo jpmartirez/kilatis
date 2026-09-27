@@ -17,6 +17,7 @@ import { DashboardTab } from "@/components/admin/dashboard-tab";
 import { AccountCreationTab } from "@/components/admin/account-creation-tab";
 import { ResetPasswordModal } from "@/components/admin/reset-password-modal";
 import { DeleteInvestigatorModal } from "@/components/admin/delete-investigator-modal";
+import { LogoutModal } from "@/components/admin/logout-modal";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -24,6 +25,7 @@ export default function AdminPage() {
   const [token, setToken] = useState<string>("");
   const [activeTab, setActiveTab] = useState<AdminTab>("dashboard");
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   // Investigators state
   const [investigators, setInvestigators] = useState<User[]>([]);
@@ -168,7 +170,7 @@ export default function AdminPage() {
           setCreateSuccess(null);
         }}
         adminUsername={currentUser?.username || "ADMIN"}
-        onLogout={handleLogout}
+        onLogout={() => setIsLogoutModalOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -215,6 +217,15 @@ export default function AdminPage() {
         isOpen={Boolean(deleteTargetUser)}
         onClose={() => setDeleteTargetUser(null)}
         onConfirm={handleConfirmDelete}
+      />
+
+      <LogoutModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={() => {
+          setIsLogoutModalOpen(false);
+          handleLogout();
+        }}
       />
     </div>
   );
