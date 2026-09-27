@@ -2,7 +2,9 @@
 
 import React, { useState } from "react";
 import { User } from "@/lib/api";
-import { History, Search, Loader2 } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { InvestigatorRowItem } from "./investigator-row-item";
 
 interface InvestigatorListProps {
@@ -27,46 +29,42 @@ export const InvestigatorList: React.FC<InvestigatorListProps> = ({
   );
 
   return (
-    <section className="space-y-3">
-      {/* Dark Navy Banner */}
-      <div className="bg-[#243346] text-white px-5 py-3 rounded-2xl flex items-center justify-between shadow-xs">
-        <div className="flex items-center gap-2.5">
-          <History className="w-4 h-4 text-slate-300 stroke-[2.5]" />
-          <h2 className="text-xs sm:text-sm font-black tracking-wider uppercase font-sans">
-            INVESTIGATORS
-          </h2>
+    <Card className="border-slate-200 shadow-2xs">
+      <CardHeader>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <CardTitle>Investigator Accounts Directory</CardTitle>
+            <CardDescription>
+              Manage investigator access, reset credentials, or permanently revoke accounts.
+            </CardDescription>
+          </div>
+          <Badge variant="navy" className="font-mono text-xs self-start sm:self-auto">
+            Total: {investigators.length}
+          </Badge>
         </div>
-        <span className="text-[11px] font-mono text-slate-300 font-bold">
-          TOTAL: {investigators.length}
-        </span>
-      </div>
+      </CardHeader>
 
-      {/* Container Body */}
-      <div className="bg-[#e4ebf3] rounded-3xl sm:rounded-[2.2rem] p-4 sm:p-6 border border-slate-300/80 shadow-sm space-y-3.5">
+      <CardContent className="space-y-4">
         {/* Search Filter Bar */}
         {investigators.length > 0 && (
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
-            <input
+          <div className="max-w-md">
+            <Input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search investigators by username or ID..."
-              className="w-full bg-white text-xs font-medium text-slate-800 placeholder-slate-400 pl-10 pr-4 py-2.5 rounded-full outline-hidden border border-slate-200 shadow-2xs"
+              className="text-xs h-10"
             />
           </div>
         )}
 
         {/* Content State */}
         {loading ? (
-          <div className="bg-white/80 rounded-2xl p-8 flex flex-col items-center justify-center gap-2 text-slate-500">
-            <Loader2 className="w-5 h-5 animate-spin text-slate-800" />
-            <span className="text-xs font-bold uppercase tracking-wider">
-              Loading Team Accounts...
-            </span>
+          <div className="p-8 text-center text-xs font-mono text-slate-500 uppercase tracking-wider bg-slate-50 rounded-xl border border-slate-200">
+            Loading team accounts...
           </div>
         ) : filtered.length === 0 ? (
-          <div className="bg-white rounded-2xl p-8 text-center text-slate-400 font-medium text-xs border border-slate-200/80">
+          <div className="p-8 text-center text-xs font-mono text-slate-400 bg-slate-50 rounded-xl border border-slate-200">
             {search
               ? "No investigators match your search criteria."
               : "No investigator accounts registered yet. Use the form above to add your team members."}
@@ -83,7 +81,7 @@ export const InvestigatorList: React.FC<InvestigatorListProps> = ({
             ))}
           </div>
         )}
-      </div>
-    </section>
+      </CardContent>
+    </Card>
   );
 };

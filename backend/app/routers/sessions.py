@@ -13,9 +13,119 @@ from app.models.session import (
     CaseSessionRead,
     PaginatedSessionsResponse,
 )
-from app.core.deps import get_current_user
+from app.core.deps import get_current_user, get_current_admin
 
 router = APIRouter(prefix="/api/sessions", tags=["Case Sessions"])
+
+
+def categorize_verdict(verdict: str) -> str:
+    """Categorize forensic verdict string into standard summary buckets."""
+    v = (verdict or "").strip().upper()
+    if "AI" in v and "SPLIC" in v:
+        return "ai_spliced"
+    if "SPLIC" in v:
+        return "spliced"
+    if "AI" in v or "DEEPFAKE" in v or "SYNTHETIC" in v:
+        return "ai_generated"
+    if "MANUAL" in v or "REVIEW" in v:
+        return "manual_review"
+    if "AUTH" in v:
+        return "authentic"
+    return "manual_review"
+
+
+@router.get("/stats/monthly")
+def get_monthly_verdict_stats(
+    month: Optional[str] = Query(None, description="Optional YYYY-MM filter"),
+    current_admin: User = Depends(get_current_admin),
+    session: Session = Depends(get_session),
+):
+    """
+    Returns monthly aggregated verdict statistics for the admin dashboard.
+    Enables tracking of verdicts per month and across custom month filters.
+    """
+    statement = select(CaseSession).order_by(col(CaseSession.created_at).desc())
+    all_sessions = session.exec(statement).all()
+
+    months_map: dict[str, dict] = {}
+    current_m_key = datetime.now(timezone.utc).strftime("%Y-%m")
+    current_m_label = datetime.now(timezone.utc).strftime("%B %Y")
+
+    # Seed current month so the UI always has at least the current month baseline
+    months_map[current_m_key] = {
+        "month": current_m_key,
+        "month_label": current_m_label,
+        "total_cases": 0,
+        "total_images": 0,
+        "authentic": 0,
+        "spliced": 0,
+        "ai_generated": 0,
+        "ai_spliced": 0,
+        "manual_review": 0,
+    }
+
+    for s in all_sessions:
+        if not s.created_at:
+            continue
+        m_key = s.created_at.strftime("%Y-%m")
+        if m_key not in months_map:
+            months_map[m_key] = {
+                "month": m_key,
+                "month_label": s.created_at.strftime("%B %Y"),
+                "total_cases": 0,
+                "total_images": 0,
+                "authentic": 0,
+                "spliced": 0,
+                "ai_generated": 0,
+                "ai_spliced": 0,
+                "manual_review": 0,
+            }
+
+        m_stat = months_map[m_key]
+        m_stat["total_cases"] += 1
+        m_stat["total_images"] += (s.total_images or 1)
+
+        v_list = s.verdicts if isinstance(s.verdicts, list) else []
+        for v in v_list:
+            cat = categorize_verdict(str(v))
+            if cat in m_stat:
+                m_stat[cat] += 1
+
+    sorted_months = sorted(months_map.keys(), reverse=True)
+    monthly_breakdown = [months_map[k] for k in sorted_months]
+
+    # Filter by specific month if requested
+    selected_month = month.strip() if month and month.strip() in months_map else None
+
+    if selected_month and selected_month in months_map:
+        target = months_map[selected_month]
+        summary = {
+            "total_cases": target["total_cases"],
+            "total_images": target["total_images"],
+            "authentic": target["authentic"],
+            "spliced": target["spliced"],
+            "ai_generated": target["ai_generated"],
+            "ai_spliced": target["ai_spliced"],
+            "manual_review": target["manual_review"],
+        }
+    else:
+        summary = {
+            "total_cases": sum(m["total_cases"] for m in monthly_breakdown),
+            "total_images": sum(m["total_images"] for m in monthly_breakdown),
+            "authentic": sum(m["authentic"] for m in monthly_breakdown),
+            "spliced": sum(m["spliced"] for m in monthly_breakdown),
+            "ai_generated": sum(m["ai_generated"] for m in monthly_breakdown),
+            "ai_spliced": sum(m["ai_spliced"] for m in monthly_breakdown),
+            "manual_review": sum(m["manual_review"] for m in monthly_breakdown),
+        }
+
+    return {
+        "available_months": sorted_months,
+        "selected_month": selected_month,
+        "summary": summary,
+        "monthly_breakdown": monthly_breakdown,
+    }
+
 
 
 def generate_next_case_number_util(session: Session) -> str:

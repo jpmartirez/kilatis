@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { User } from "@/lib/api";
-import { Trash2, X, Loader2, AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface DeleteInvestigatorModalProps {
   user: User | null;
@@ -37,39 +37,36 @@ export const DeleteInvestigatorModal: React.FC<DeleteInvestigatorModalProps> = (
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/30 backdrop-blur-[1.5px] flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-slate-200 space-y-5 animate-in fade-in zoom-in-95 duration-150">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-red-50 rounded-full text-red-600">
-              <Trash2 className="w-4 h-4" />
-            </div>
-            <div>
-              <h3 className="font-black text-sm text-slate-900 uppercase tracking-wide">
-                Delete Account
-              </h3>
-              <p className="text-xs text-slate-500 font-mono">
-                {user.username}
-              </p>
-            </div>
+    <div className="fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl p-6 sm:p-7 max-w-md w-full shadow-xl border border-slate-200 space-y-5 animate-in fade-in zoom-in-95 duration-150">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <h3 className="font-bold text-sm text-slate-900 uppercase tracking-wide">
+              Delete Investigator Account
+            </h3>
+            <p className="text-xs text-slate-500 font-mono">
+              Username: {user.username}
+            </p>
           </div>
 
           <button
             type="button"
             onClick={onClose}
-            className="p-1 text-slate-400 hover:text-slate-700 rounded-full cursor-pointer"
+            className="text-xs font-bold text-slate-400 hover:text-slate-800 px-2 py-1 rounded-md cursor-pointer uppercase font-mono"
           >
-            <X className="w-4 h-4" />
+            [Close]
           </button>
         </div>
 
-        <div className="bg-[#243346]/5 border border-[#243346]/15 text-[#243346] p-3.5 rounded-2xl text-xs space-y-1">
-          <div className="flex items-center gap-1.5 font-bold text-[#243346]">
-            <AlertTriangle className="w-3.5 h-3.5 text-[#243346] shrink-0" />
-            <span>Permanent Action Notice</span>
+        <div className="bg-red-50/70 border border-red-200 text-red-900 p-3.5 rounded-xl text-xs space-y-1">
+          <div className="font-bold uppercase tracking-wider text-[11px] text-red-800">
+            Irreversible Action
           </div>
-          <p className="text-slate-600 text-[11px] leading-relaxed">
-            Are you sure you want to permanently delete the investigator account for <strong className="font-bold text-slate-900">{user.username}</strong> (ID: <span className="font-mono text-[10px]">{user.id}</span>)? This action cannot be undone.
+          <p className="text-slate-700 text-xs leading-relaxed">
+            Are you sure you want to permanently delete the investigator account for{" "}
+            <strong className="font-bold text-slate-950">{user.username}</strong>{" "}
+            (Account ID: <span className="font-mono text-[11px]">{user.id}</span>)?
+            This will permanently revoke all access.
           </p>
         </div>
 
@@ -79,24 +76,25 @@ export const DeleteInvestigatorModal: React.FC<DeleteInvestigatorModalProps> = (
           </div>
         )}
 
-        <div className="flex items-center justify-end gap-2 pt-2">
-          <button
+        <div className="flex items-center justify-end gap-2 pt-1">
+          <Button
             type="button"
+            variant="outline"
             onClick={onClose}
             disabled={loading}
-            className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 rounded-full transition-colors cursor-pointer"
+            className="text-xs font-bold uppercase tracking-wider h-10 px-4 cursor-pointer"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="destructive"
             onClick={handleDelete}
             disabled={loading}
-            className="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+            className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold uppercase tracking-wider h-10 px-5 cursor-pointer disabled:opacity-50"
           >
-            {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-            <span>Confirm Delete</span>
-          </button>
+            {loading ? "Deleting..." : "Confirm Delete"}
+          </Button>
         </div>
       </div>
     </div>

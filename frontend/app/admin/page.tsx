@@ -3,17 +3,18 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
 import {
   createInvestigator,
   getMyInvestigators,
   resetInvestigatorPassword,
   deleteInvestigator,
+  getMonthlyVerdictStats,
   User,
+  MonthlyStatsResponse,
 } from "@/lib/api";
-import { AdminHeader } from "@/components/admin/admin-header";
-import { CreateInvestigatorCard } from "@/components/admin/create-investigator-card";
-import { InvestigatorList } from "@/components/admin/investigator-list";
+import { AdminSidebar, AdminTab } from "@/components/admin/admin-sidebar";
+import { DashboardTab } from "@/components/admin/dashboard-tab";
+import { AccountCreationTab } from "@/components/admin/account-creation-tab";
 import { ResetPasswordModal } from "@/components/admin/reset-password-modal";
 import { DeleteInvestigatorModal } from "@/components/admin/delete-investigator-modal";
 
@@ -21,11 +22,19 @@ export default function AdminPage() {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [token, setToken] = useState<string>("");
-  const [investigators, setInvestigators] = useState<User[]>([]);
+  const [activeTab, setActiveTab] = useState<AdminTab>("dashboard");
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const [loadingList, setLoadingList] = useState(false);
 
-  // Create form state
+  // Investigators state
+  const [investigators, setInvestigators] = useState<User[]>([]);
+  const [loadingInvestigators, setLoadingInvestigators] = useState(false);
+
+  // Monthly stats state
+  const [statsData, setStatsData] = useState<MonthlyStatsResponse | null>(null);
+  const [loadingStats, setLoadingStats] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState<string>("ALL");
+
+  // Create investigator form state
   const [newUsername, setNewUsername] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
@@ -38,15 +47,30 @@ export default function AdminPage() {
 
   const loadInvestigators = useCallback(async (authToken: string) => {
     try {
-      setLoadingList(true);
+      setLoadingInvestigators(true);
       const data = await getMyInvestigators(authToken);
       setInvestigators(data);
     } catch (err) {
       console.error("Error loading investigators:", err);
     } finally {
-      setLoadingList(false);
+      setLoadingInvestigators(false);
     }
   }, []);
+
+  const loadMonthlyStats = useCallback(
+    async (authToken: string, monthFilter?: string) => {
+      try {
+        setLoadingStats(true);
+        const data = await getMonthlyVerdictStats(authToken, monthFilter);
+        setStatsData(data);
+      } catch (err) {
+        console.error("Error loading monthly verdict stats:", err);
+      } finally {
+        setLoadingStats(false);
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
@@ -66,13 +90,21 @@ export default function AdminPage() {
       setCurrentUser(userObj);
       setToken(storedToken);
       loadInvestigators(storedToken);
+      loadMonthlyStats(storedToken, "ALL");
       setIsCheckingAuth(false);
     } catch {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       router.replace("/");
     }
-  }, [router, loadInvestigators]);
+  }, [router, loadInvestigators, loadMonthlyStats]);
+
+  const handleSelectMonth = (month: string) => {
+    setSelectedMonth(month);
+    if (token) {
+      loadMonthlyStats(token, month);
+    }
+  };
 
   const handleCreateInvestigator = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,43 +150,59 @@ export default function AdminPage() {
   if (isCheckingAuth) {
     return (
       <div className="min-h-screen w-full bg-[#f8fafc] flex items-center justify-center font-sans text-slate-600">
-        <div className="flex items-center gap-2.5 px-5 py-3 bg-white border border-slate-200 rounded-2xl shadow-xs">
-          <Loader2 className="w-4 h-4 animate-spin text-slate-800" />
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
-            Verifying Admin Access...
-          </span>
+        <div className="px-6 py-4 bg-white border border-slate-200 rounded-2xl shadow-xs text-xs font-mono font-bold uppercase tracking-wider text-slate-800">
+          Verifying Admin Access...
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] py-6 px-4 sm:px-6 lg:px-8 font-sans text-slate-900">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <AdminHeader
-          adminUsername={currentUser?.username || "ADMIN"}
-          onLogout={handleLogout}
-        />
+    <div className="min-h-screen bg-[#f8fafc] flex flex-col lg:flex-row font-sans text-slate-900">
+      {/* Sidebar (Desktop left fixed / Mobile top header) */}
+      <AdminSidebar
+        activeTab={activeTab}
+        onTabChange={(tab) => {
+          setActiveTab(tab);
+          setCreateError(null);
+          setCreateSuccess(null);
+        }}
+        adminUsername={currentUser?.username || "ADMIN"}
+        onLogout={handleLogout}
+      />
 
-        <CreateInvestigatorCard
-          username={newUsername}
-          setUsername={setNewUsername}
-          password={newPassword}
-          setPassword={setNewPassword}
-          onSubmit={handleCreateInvestigator}
-          loading={createLoading}
-          error={createError}
-          success={createSuccess}
-        />
+      {/* Main Content Area */}
+      <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-10 max-w-6xl mx-auto w-full">
+        {activeTab === "dashboard" ? (
+          <DashboardTab
+            statsData={statsData}
+            loadingStats={loadingStats}
+            selectedMonth={selectedMonth}
+            onSelectMonth={handleSelectMonth}
+            onRefreshStats={() => loadMonthlyStats(token, selectedMonth)}
+            investigators={investigators}
+            loadingInvestigators={loadingInvestigators}
+            onNavigateToAccounts={() => setActiveTab("accounts")}
+          />
+        ) : (
+          <AccountCreationTab
+            username={newUsername}
+            setUsername={setNewUsername}
+            password={newPassword}
+            setPassword={setNewPassword}
+            onSubmit={handleCreateInvestigator}
+            createLoading={createLoading}
+            createError={createError}
+            createSuccess={createSuccess}
+            investigators={investigators}
+            loadingList={loadingInvestigators}
+            onResetPassword={(u) => setResetTargetUser(u)}
+            onDelete={(u) => setDeleteTargetUser(u)}
+          />
+        )}
+      </main>
 
-        <InvestigatorList
-          investigators={investigators}
-          loading={loadingList}
-          onResetPassword={(u) => setResetTargetUser(u)}
-          onDelete={(u) => setDeleteTargetUser(u)}
-        />
-      </div>
-
+      {/* Modals */}
       <ResetPasswordModal
         user={resetTargetUser}
         isOpen={Boolean(resetTargetUser)}

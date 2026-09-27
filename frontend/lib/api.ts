@@ -384,3 +384,58 @@ export async function deleteCaseSession(
     throw new Error(err.detail || "Failed to delete case session");
   }
 }
+
+export interface MonthlyVerdictBreakdown {
+  month: string;
+  month_label: string;
+  total_cases: number;
+  total_images: number;
+  authentic: number;
+  spliced: number;
+  ai_generated: number;
+  ai_spliced: number;
+  manual_review: number;
+}
+
+export interface MonthlyStatsSummary {
+  total_cases: number;
+  total_images: number;
+  authentic: number;
+  spliced: number;
+  ai_generated: number;
+  ai_spliced: number;
+  manual_review: number;
+}
+
+export interface MonthlyStatsResponse {
+  available_months: string[];
+  selected_month: string | null;
+  summary: MonthlyStatsSummary;
+  monthly_breakdown: MonthlyVerdictBreakdown[];
+}
+
+export async function getMonthlyVerdictStats(
+  token?: string,
+  month?: string
+): Promise<MonthlyStatsResponse> {
+  const authToken = token || getStoredAuthToken();
+  const headers: Record<string, string> = {
+    "ngrok-skip-browser-warning": "true",
+  };
+  if (authToken) {
+    headers["Authorization"] = `Bearer ${authToken}`;
+  }
+
+  const query = month && month !== "ALL" ? `?month=${encodeURIComponent(month)}` : "";
+  const res = await fetch(`${API_BASE_URL}/api/sessions/stats/monthly${query}`, {
+    headers,
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Failed to fetch verdict statistics" }));
+    throw new Error(err.detail || "Failed to fetch verdict statistics");
+  }
+
+  return res.json();
+}
+
