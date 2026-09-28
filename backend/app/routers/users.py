@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timezone
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -15,12 +16,44 @@ from app.core.deps import get_current_admin
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
 
+
+def validate_password_complexity(password: str) -> None:
+    """Enforce standard forensic password criteria: min 8 chars, uppercase, lowercase, digit, special char."""
+    if len(password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must be at least 8 characters long.",
+        )
+    if not re.search(r"[A-Z]", password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must contain at least one uppercase letter (A-Z).",
+        )
+    if not re.search(r"[a-z]", password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must contain at least one lowercase letter (a-z).",
+        )
+    if not re.search(r"[0-9]", password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must contain at least one number (0-9).",
+        )
+    if not re.search(r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>/?`~]", password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must contain at least one special character.",
+        )
+
+
 @router.post("/investigator", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 def create_investigator(
     payload: InvestigatorCreate,
     current_admin: User = Depends(get_current_admin),
     session: Session = Depends(get_session)
 ):
+    validate_password_complexity(payload.password)
+
     existing_user = session.exec(select(User).where(User.username == payload.username)).first()
     if existing_user:
         raise HTTPException(
@@ -74,11 +107,7 @@ def reset_investigator_password(
             detail="Investigator account not found"
         )
     
-    if len(payload.new_password.strip()) < 4:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Password must be at least 4 characters long"
-        )
+    validate_password_complexity(payload.new_password.strip())
 
     investigator.password_hash = hash_password(payload.new_password.strip())
     investigator.updated_at = datetime.now(timezone.utc)

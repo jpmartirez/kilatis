@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { User } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { checkPasswordStrength, PasswordRequirementsList } from "./password-requirements";
 
 interface ResetPasswordModalProps {
   user: User | null;
@@ -20,8 +22,12 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
 }) => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const passwordValidation = checkPasswordStrength(newPassword);
 
   if (!isOpen || !user) return null;
 
@@ -29,8 +35,8 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
     e.preventDefault();
     setError(null);
 
-    if (newPassword.trim().length < 4) {
-      setError("Password must be at least 4 characters long.");
+    if (!passwordValidation.isValid) {
+      setError("Password must meet all required security standards.");
       return;
     }
 
@@ -55,7 +61,7 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl p-6 sm:p-7 max-w-md w-full shadow-xl border border-slate-200 space-y-5 animate-in fade-in zoom-in-95 duration-150">
+      <div className="bg-white rounded-2xl p-6 sm:p-7 max-w-md w-full shadow-xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
             <h3 className="font-bold text-sm text-slate-900 uppercase tracking-wide">
@@ -86,31 +92,64 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
             <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider">
               New Password
             </label>
-            <Input
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Enter new password (min 4 chars)"
-              required
-              className="text-xs h-10"
-            />
+            <div className="relative">
+              <Input
+                type={showNewPassword ? "text" : "password"}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter standard password"
+                required
+                className="text-xs h-10 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowNewPassword((prev) => !prev)}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors p-1 cursor-pointer focus:outline-hidden"
+                title={showNewPassword ? "Hide password" : "Show password"}
+                aria-label={showNewPassword ? "Hide password" : "Show password"}
+              >
+                {showNewPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
+            </div>
           </div>
 
           <div className="space-y-1.5">
             <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider">
               Confirm New Password
             </label>
-            <Input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Re-enter new password"
-              required
-              className="text-xs h-10"
-            />
+            <div className="relative">
+              <Input
+                type={showConfirmPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Re-enter new password"
+                required
+                className="text-xs h-10 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors p-1 cursor-pointer focus:outline-hidden"
+                title={showConfirmPassword ? "Hide password" : "Show password"}
+                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+              >
+                {showConfirmPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
+            </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-2">
+          {/* Password Standards Checklist */}
+          <PasswordRequirementsList validation={passwordValidation} />
+
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
             <Button
               type="button"
               variant="outline"
@@ -122,8 +161,8 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
             </Button>
             <Button
               type="submit"
-              disabled={loading || !newPassword.trim()}
-              className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-wider h-10 px-5 cursor-pointer disabled:opacity-50"
+              disabled={loading || !passwordValidation.isValid || !confirmPassword.trim()}
+              className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-wider h-10 px-5 cursor-pointer disabled:opacity-40"
             >
               {loading ? "Saving Password..." : "Update Password"}
             </Button>
