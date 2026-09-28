@@ -45,7 +45,7 @@ image = (
 
 @app.function(
     image=image,
-    gpu="T4",
+    gpu="L4",
     scaledown_window=60,
     timeout=300,
 )
@@ -53,3 +53,5 @@ image = (
 def fastapi_app():
     from main import app as existing_fastapi_app
     return existing_fastapi_app
+
+# uv run modal deploy modal_app.py
