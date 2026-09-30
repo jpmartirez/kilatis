@@ -3,10 +3,8 @@ from enum import IntEnum
 class Cls(IntEnum):
     AUTHENTIC = 0
     SPLICED = 1
-    COPYMOVE = 2
-    INPAINTED = 3
-    AI_GENERATED = 4
-    DEEPFAKE = 5
+    AI_GENERATED = 2
+    DEEPFAKE = 3
 
 ID_TO_NAME = {c.value: c.name.lower() for c in Cls}
 NAME_TO_ID = {v: k for k, v in ID_TO_NAME.items()}

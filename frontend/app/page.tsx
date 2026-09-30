@@ -71,3 +71,5 @@ export default function LandingPage() {
 		</main>
 	);
 }
+
+// npm run tauri build

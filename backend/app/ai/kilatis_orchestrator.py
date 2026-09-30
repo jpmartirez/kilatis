@@ -93,6 +93,7 @@ class KilatisOrchestrator:
             print(f"[KILATIS AI WARNING] Branch 1 checkpoint not found at {B1_CKPT}")
             return None
         try:
+            # pyrefly: ignore [missing-import]
             from branch2_model import Branch2Net
             m = Branch2Net().to(self.device).eval()
             ck = torch.load(B1_CKPT, map_location=self.device)
@@ -148,6 +149,7 @@ class KilatisOrchestrator:
         if m is None:
             return 0.05, 0.05, 0.05, 0.05, 0, None, 0, 0
 
+        # pyrefly: ignore [missing-import]
         from branch2_data import _spatial, _frequency, _wavelet, SIZE
         from app.ai.transforms import extract_face_crops
         a = np.ascontiguousarray(np.array(img_pil, dtype=np.uint8))
