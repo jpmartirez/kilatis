@@ -1,4 +1,4 @@
-# KILATIS: Dual-Branch Digital Image Forensics and Synthesis Detection System
+# Dual-Branch Digital Image Forensics and Synthesis Detection System
 
 ![Project Status](https://img.shields.io/badge/Status-Thesis_Project-blue)
 ![Backend](https://img.shields.io/badge/Backend-FastAPI-009688)
@@ -15,7 +15,7 @@ An integrated forensic image authentication platform engineered for multi-modal 
 
 The proliferation of generative adversarial networks (GANs), diffusion synthesis pipelines, and advanced digital editing tools has significantly degraded trust in digital image integrity. Traditional forensic methods often focus narrowly on either metadata analysis or handcrafted statistical anomalies, leaving them vulnerable to sophisticated AI synthesis and subtle compositing attacks.
 
-KILATIS is a digital forensics system designed to detect, localize, and classify visual manipulations in questioned digital imagery. The system implements a dual-branch artificial intelligence architecture combined with a multi-gate evaluation matrix to evaluate authenticity across three canonical classifications:
+It is a digital forensics system designed to detect, localize, and classify visual manipulations in questioned digital imagery. The system implements a dual-branch artificial intelligence architecture combined with a multi-gate evaluation matrix to evaluate authenticity across three canonical classifications:
 
 - Authentic (unaltered digital capture)
 - Spliced (localized insertion, compositing, or cut-and-paste manipulation)
@@ -27,7 +27,7 @@ The platform is deployed as both a high-performance web interface and a native c
 
 ## System Architecture
 
-![KILATIS System Architecture](./docs/assets/kilatis_architecture.jpg)
+![System Architecture](./docs/assets/kilatis_architecture.jpg)
 
 The system is organized into four distinct architectural layers:
 
