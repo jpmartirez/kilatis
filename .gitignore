@@ -46,6 +46,5 @@ dist/
 # Weights
 *.pt
 
-/model_testing
 /_backup_before_meta
 MIGRATION_REPORT.md
