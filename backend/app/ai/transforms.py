@@ -71,18 +71,21 @@ def wavelet_transform(a: np.ndarray) -> np.ndarray:
 _YUNET_MODEL_PATH = os.path.join(os.path.dirname(__file__), "face_detection_yunet.onnx")
 
 
-def extract_face_crops(img_np: np.ndarray, margin: float = 0.15) -> list[np.ndarray]:
+def extract_face_crops(img_np: np.ndarray, margin: float = 0.15, return_boxes: bool = False):
     """
     Detects facial regions using OpenCV YuNet DNN face detector with margin expansion.
     Returns list of face crop arrays suitable for tiling.
+    With return_boxes=True, returns (crops, boxes) where each box is (x1, y1, x2, y2) in pixels.
     """
+    crops: list[np.ndarray] = []
+    boxes: list[tuple[int, int, int, int]] = []
     try:
         arr = np.ascontiguousarray(img_np, dtype=np.uint8)
         h_img, w_img = arr.shape[:2]
 
         if not os.path.isfile(_YUNET_MODEL_PATH):
             print(f"[FACE] YuNet model not found at {_YUNET_MODEL_PATH}")
-            return []
+            return (crops, boxes) if return_boxes else crops
 
         detector = cv2.FaceDetectorYN.create(
             _YUNET_MODEL_PATH, "", (w_img, h_img),
@@ -91,9 +94,8 @@ def extract_face_crops(img_np: np.ndarray, margin: float = 0.15) -> list[np.ndar
         _, faces = detector.detect(arr)
 
         if faces is None or len(faces) == 0:
-            return []
+            return (crops, boxes) if return_boxes else crops
 
-        crops = []
         for f in faces:
             x, y, fw, fh = int(f[0]), int(f[1]), int(f[2]), int(f[3])
             conf = float(f[14]) if len(f) > 14 else float(f[-1])
@@ -118,12 +120,13 @@ def extract_face_crops(img_np: np.ndarray, margin: float = 0.15) -> list[np.ndar
             crop = arr[y1:y2, x1:x2, :]
             if crop.size > 0:
                 crops.append(crop)
+                boxes.append((x1, y1, x2, y2))
 
         print(f"[FACE] Detected {len(crops)} face(s) in {w_img}x{h_img} image")
-        return crops
+        return (crops, boxes) if return_boxes else crops
     except Exception as e:
         print(f"[FACE] Error: {e}")
-        return []
+        return ([], []) if return_boxes else []
 
 
 def tiles_of(a: np.ndarray) -> list[np.ndarray]:

@@ -4,6 +4,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { FileText } from "lucide-react";
 import { VerdictCard } from "./verdict-card";
+import { DecisionBasisCard } from "./decision-basis-card";
 import { ClassProbabilityCard } from "./class-probability-card";
 import { MetadataCard } from "./metadata-card";
 import { ImageAnalysisResult } from "@/lib/api";
@@ -46,6 +47,9 @@ export const ResultsSidebar: React.FC<ResultsSidebarProps> = ({
     <aside className="lg:col-span-4 space-y-3.5 sticky top-4">
       {/* 1. Verdict Card */}
       <VerdictCard verdictData={verdictData} />
+
+      {/* Confidence level and top evidence from the learned decision layer */}
+      <DecisionBasisCard result={currentResult} />
 
       {/* 2. Class Probability Bar Chart */}
       <ClassProbabilityCard probBars={probBars} />

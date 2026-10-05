@@ -26,8 +26,8 @@ from typing import Optional
 import numpy as np
 from PIL import Image
 
-AI_THR, AI_MOD, AI_HIGH = 0.68, 0.80, 0.87          # Branch 1  (mean P(AI))
-SPLICE_THR, SPLICE_MOD, SPLICE_HIGH = 0.428, 0.60, 0.80  # Branch 2  sigmoid(det)
+AI_THR, AI_MOD, AI_HIGH = 0.5422, 0.80, 0.87          # Branch 1  (mean P(AI))
+SPLICE_THR, SPLICE_MOD, SPLICE_HIGH = 0.520, 0.60, 0.80  # Branch 2  sigmoid(det)
 
 MIN_LONG_EDGE = 256      # below this, Branch 1's native-res tiling degenerates
 GRAY_SPREAD_EPS = 1.0    # mean inter-channel spread below this => effectively grayscale

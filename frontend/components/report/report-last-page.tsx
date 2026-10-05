@@ -99,7 +99,7 @@ export const ReportLastPage: React.FC<ReportLastPageProps> = ({
 					</div>
 
 					{/* Form Fields: Clean blank input capsules without placeholder text */}
-					<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+					<div className="grid grid-cols-2 gap-4 pt-1">
 						<div>
 							<span className="text-[9px] font-bold font-sans text-slate-600 uppercase tracking-wider block mb-1">
 								NAME
