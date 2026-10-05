@@ -3,6 +3,7 @@
 
 import React from "react";
 import { StoredResultItem } from "@/types/results";
+import { getDecisionExplanation } from "@/lib/report-explain";
 
 interface ReportImagePageProps {
   item: StoredResultItem;
@@ -21,6 +22,8 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
   const isDeepfake = vLower.includes("deepfake");
   const isAi = vLower.includes("ai") || isDeepfake;
   const isAuthentic = vLower.includes("authentic");
+  const hasHeatmap = Boolean(result.mask_base64);
+  const explanation = getDecisionExplanation(result);
 
   // Streams percentages
   const spatialPct = Math.round((result.streams?.spatial_score ?? result.scores?.p_ai ?? 0.82) * 100);
@@ -58,7 +61,7 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
   const filename = item.originalName || item.result.filename || `asset${index + 1}.jpg`;
 
   return (
-    <div className="flex-1 flex flex-col justify-between font-sans h-full space-y-3.5">
+    <div className="flex-1 flex flex-col justify-between font-sans h-full space-y-1">
       {/* Top Banner: QUESTIONED IMAGE */}
       <div className="bg-[#243346] text-white px-4 py-2 rounded-xl flex items-center gap-2 shadow-xs shrink-0">
         <span className="text-slate-400 font-bold text-[11px] uppercase tracking-wider">
@@ -70,7 +73,7 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
       </div>
 
       {/* Ⓐ VERDICT & EXECUTIVE SUMMARY */}
-      <div className="bg-[#eef4f9] rounded-2xl p-4 shadow-2xs border border-slate-200/80 shrink-0">
+      <div className="bg-[#eef4f9] rounded-2xl p-2.5 shadow-2xs border border-slate-200/80 shrink-0">
         <div className="flex items-center gap-2 mb-0.5">
           <div className="w-4 h-4 rounded-full border border-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-900 font-sans">
             A
@@ -79,15 +82,15 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
             VERDICT & EXECUTIVE SUMMARY
           </h3>
         </div>
-        <p className="text-[10px] text-slate-500 font-medium mb-2 pl-6">
+        <p className="text-[10px] text-slate-500 font-medium mb-1 pl-6">
           Overall finding, in plain language, for non-technical readers.
         </p>
 
         {/* Inner White Box */}
-        <div className="bg-white rounded-xl p-3.5 shadow-2xs border border-slate-200/60 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+        <div className="bg-white rounded-xl p-3 shadow-2xs border border-slate-200/60 grid grid-cols-12 gap-4 items-center">
           {/* Verdict Box */}
           <div
-            className={`md:col-span-4 ${verdictBadgeBg} text-white rounded-xl p-3 text-left shadow-xs flex flex-col justify-between min-h-23`}
+            className={`col-span-4 ${verdictBadgeBg} text-white rounded-xl p-3 text-left shadow-xs flex flex-col justify-between min-h-20`}
           >
             <div>
               <span className="text-[8.5px] font-sans font-bold uppercase tracking-wider block opacity-90">
@@ -108,7 +111,7 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
           </div>
 
           {/* Executive Summary Paragraph */}
-          <div className="md:col-span-8 space-y-1.5 text-[10.5px] text-slate-800 leading-snug font-sans">
+          <div className="col-span-8 space-y-1.5 text-[10.5px] text-slate-800 leading-snug font-sans">
             {isSpliced ? (
               <>
                 <p>
@@ -148,7 +151,7 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
       </div>
 
       {/* Ⓑ VISUAL EVIDENCE */}
-      <div className="bg-[#eef4f9] rounded-2xl p-4 shadow-2xs border border-slate-200/80 shrink-0">
+      <div className="bg-[#eef4f9] rounded-2xl p-2.5 shadow-2xs border border-slate-200/80 shrink-0">
         <div className="flex items-center gap-2 mb-0.5">
           <div className="w-4 h-4 rounded-full border border-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-900 font-sans">
             B
@@ -157,25 +160,25 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
             VISUAL EVIDENCE
           </h3>
         </div>
-        <p className="text-[10px] text-slate-500 font-medium mb-2 pl-6">
+        <p className="text-[10px] text-slate-500 font-medium mb-1 pl-6">
           Questioned image and heatmap overlay.
         </p>
 
-        {/* Viewports (Heatmap ONLY if Spliced; 1 Centered Image if Authentic or AI) */}
+        {/* Viewports (Heatmap whenever a localization mask was returned; otherwise 1 centered image) */}
         <div
-          className={`grid gap-3 mb-2 ${
-            isSpliced && result.mask_base64
+          className={`grid gap-3 mb-1 ${
+            hasHeatmap
               ? "grid-cols-2"
               : "grid-cols-1 max-w-60 mx-auto"
           }`}
         >
           {/* Questioned Image */}
           <div className="bg-[#18181b] rounded-xl p-2.5 flex flex-col items-center justify-center shadow-xs">
-            <div className="relative aspect-4/3 w-full flex items-center justify-center overflow-hidden rounded-lg">
+            <div className="relative h-24 w-full flex items-center justify-center overflow-hidden rounded-lg">
               <img
                 src={item.previewUrl}
                 alt="Questioned Image"
-                className="max-h-36 max-w-full object-contain rounded-lg"
+                className="max-h-24 max-w-full object-contain rounded-lg"
               />
             </div>
             <span className="text-[8.5px] font-black tracking-widest text-slate-300 uppercase mt-1.5">
@@ -183,14 +186,14 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
             </span>
           </div>
 
-          {/* GradCAM / JET Heatmap (Spliced ONLY) */}
-          {isSpliced && result.mask_base64 && (
+          {/* GradCAM / JET Heatmap (when a mask was returned) */}
+          {result.mask_base64 && (
             <div className="bg-[#18181b] rounded-xl p-2.5 flex flex-col items-center justify-center shadow-xs">
-              <div className="relative aspect-4/3 w-full flex items-center justify-center overflow-hidden rounded-lg">
+              <div className="relative h-24 w-full flex items-center justify-center overflow-hidden rounded-lg">
                 <img
                   src={result.mask_base64}
                   alt="GradCAM Heatmap"
-                  className="max-h-36 max-w-full object-contain rounded-lg"
+                  className="max-h-24 max-w-full object-contain rounded-lg"
                 />
               </div>
               <span className="text-[8.5px] font-black tracking-widest text-slate-300 uppercase mt-1.5">
@@ -201,7 +204,7 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
         </div>
 
         {/* Localized Evidence Caption */}
-        <p className="text-[10px] text-slate-800 font-sans mb-2">
+        <p className="text-[10px] text-slate-800 font-sans mb-1">
           <span className="text-slate-600">Localized evidence: </span>
           <strong>
             {isSpliced
@@ -213,8 +216,8 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
         </p>
 
         {/* 3 Score Cards in a row */}
-        <div className="grid grid-cols-3 gap-2.5 mb-2">
-          <div className="bg-white rounded-xl p-2.5 shadow-2xs border border-slate-200/60">
+        <div className="grid grid-cols-3 gap-2.5 mb-1">
+          <div className="bg-white rounded-xl p-2 shadow-2xs border border-slate-200/60">
             <span className="text-[8px] font-bold font-sans text-slate-400 uppercase tracking-wider block">
               SPATIAL
             </span>
@@ -226,7 +229,7 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
             </span>
           </div>
 
-          <div className="bg-white rounded-xl p-2.5 shadow-2xs border border-slate-200/60">
+          <div className="bg-white rounded-xl p-2 shadow-2xs border border-slate-200/60">
             <span className="text-[8px] font-bold font-sans text-slate-400 uppercase tracking-wider block">
               NOISE
             </span>
@@ -238,7 +241,7 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
             </span>
           </div>
 
-          <div className="bg-white rounded-xl p-2.5 shadow-2xs border border-slate-200/60">
+          <div className="bg-white rounded-xl p-2 shadow-2xs border border-slate-200/60">
             <span className="text-[8px] font-bold font-sans text-slate-400 uppercase tracking-wider block">
               FREQUENCY
             </span>
@@ -252,7 +255,7 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
         </div>
 
         {/* Stream Findings Explanation Rows */}
-        <div className="bg-white rounded-xl p-2.5 shadow-2xs border border-slate-200/60 space-y-1.5 text-[9.5px]">
+        <div className="bg-white rounded-xl p-2 shadow-2xs border border-slate-200/60 space-y-1 text-[9.5px]">
           <div className="grid grid-cols-12 gap-2 items-start">
             <div className="col-span-3 font-bold uppercase tracking-wider text-slate-900 text-[9px]">
               SPATIAL
@@ -283,7 +286,7 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
       </div>
 
       {/* Ⓒ TECHNICAL BASIS (Metadata on Left + Class Probability Chart on Right) */}
-      <div className="bg-[#eef4f9] rounded-2xl p-4 shadow-2xs border border-slate-200/80 shrink-0">
+      <div className="bg-[#eef4f9] rounded-2xl p-2.5 shadow-2xs border border-slate-200/80 shrink-0">
         <div className="flex items-center gap-2 mb-0.5">
           <div className="w-4 h-4 rounded-full border border-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-900 font-sans">
             C
@@ -292,20 +295,20 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
             TECHNICAL BASIS
           </h3>
         </div>
-        <p className="text-[10px] text-slate-500 font-medium mb-1.5 pl-6">
+        <p className="text-[10px] text-slate-500 font-medium mb-1 pl-6">
           Image output detail, for expert review.
         </p>
 
         {/* 2-Column Split: METADATA & CLASS PROBABILITY */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5 items-stretch">
+        <div className="grid grid-cols-12 gap-3.5 items-stretch">
           {/* Left Block: METADATA */}
-          <div className="md:col-span-8 flex flex-col justify-between">
+          <div className="col-span-8 flex flex-col justify-between">
             <div className="text-center mb-1">
               <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-600">
                 METADATA
               </span>
             </div>
-            <div className="bg-white rounded-xl p-3 shadow-2xs border border-slate-200/60 grid grid-cols-2 gap-y-1.5 gap-x-4 text-[9.5px] flex-1">
+            <div className="bg-white rounded-xl p-2.5 shadow-2xs border border-slate-200/60 grid grid-cols-2 gap-y-1 gap-x-4 text-[9.5px] flex-1">
               <div className="space-y-1">
                 <div className="flex items-start justify-between gap-1">
                   <span className="text-slate-600 font-medium">SHA-256:</span>
@@ -391,7 +394,7 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
           </div>
 
           {/* Right Block: CLASS PROBABILITY BAR CHART */}
-          <div className="md:col-span-4 flex flex-col justify-between">
+          <div className="col-span-4 flex flex-col justify-between">
             <div className="text-center mb-1">
               <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-600">
                 CLASS PROBABILITY
@@ -432,6 +435,85 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Ⓓ EXPLAINABLE DECISION (META-CLASSIFIER) */}
+      <div className="bg-[#eef4f9] rounded-2xl p-2.5 shadow-2xs border border-slate-200/80 shrink-0">
+        <div className="flex items-center gap-2 mb-0.5">
+          <div className="w-4 h-4 rounded-full border border-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-900 font-sans">
+            D
+          </div>
+          <h3 className="text-xs font-black tracking-wide text-slate-950 uppercase font-sans">
+            EXPLAINABLE DECISION
+          </h3>
+        </div>
+        <p className="text-[10px] text-slate-500 font-medium mb-1 pl-6">
+          How the learned meta-classifier reached this verdict, and the evidence that drove it.
+        </p>
+
+        <div className="bg-white rounded-xl p-2.5 shadow-2xs border border-slate-200/60 font-sans space-y-1">
+          {/* Confidence + plain-language summary */}
+          <div className="flex items-start gap-2.5">
+            {explanation.confidenceLabel && (
+              <span
+                className="shrink-0 text-white text-[8px] font-black tracking-widest px-2 py-0.5 rounded-full mt-px"
+                style={{ backgroundColor: explanation.confidenceColor }}
+              >
+                {explanation.confidenceLabel}
+              </span>
+            )}
+            <p className="text-[9.5px] text-slate-800 leading-snug line-clamp-3">
+              {explanation.summary}
+              {explanation.rulesCheck && (
+                <span className="text-slate-500"> {explanation.rulesCheck}</span>
+              )}
+            </p>
+          </div>
+
+          {/* Key evidence ranking */}
+          {explanation.evidence.length > 0 && (
+            <div>
+              <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                KEY EVIDENCE TOWARD {explanation.evidenceToward?.toUpperCase()} · IMPACT IN PERCENTAGE POINTS
+              </span>
+              <div className="grid grid-cols-3 divide-x divide-slate-200">
+                {explanation.evidence.map((factor, i) => (
+                  <div
+                    key={factor.label}
+                    className="px-2.5 first:pl-0 last:pr-0 space-y-0.5"
+                  >
+                    <span className="block text-[8.5px] text-slate-700 font-medium leading-tight">
+                      <span className="font-bold text-slate-400 mr-1">{i + 1}.</span>
+                      {factor.label}
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono font-bold text-slate-900 text-[9px]">{factor.value}</span>
+                      <span className="flex-1 h-1.5 bg-slate-200/70 rounded-full overflow-hidden">
+                        <span
+                          className="block h-full rounded-full"
+                          style={{
+                            width: `${Math.max(6, Math.round((factor.points / Math.max(...explanation.evidence.map((e) => e.points), 1)) * 100))}%`,
+                            backgroundColor: explanation.confidenceColor,
+                          }}
+                        />
+                      </span>
+                      <span className="font-mono font-bold text-slate-700 text-[9px]">+{factor.points}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {explanation.notes.length > 0 && (
+            <p className="pt-1 border-t border-slate-100 text-[8px] text-slate-600 leading-snug line-clamp-3">
+              <span className="font-bold text-slate-900 uppercase tracking-wider text-[8px] mr-1">
+                NOTES:
+              </span>
+              {explanation.notes.join(" ")}
+            </p>
+          )}
         </div>
       </div>
     </div>

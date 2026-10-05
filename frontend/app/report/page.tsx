@@ -278,7 +278,7 @@ export default function ReportPage() {
 						transformOrigin: "top center",
 						transition: "transform 0.15s ease-out",
 					}}
-					className="space-y-8 print:space-y-0"
+					className="space-y-8 print:space-y-0 print:transform-none!"
 				>
 					{/* PAGE 1: Case Overview & Notes */}
 					<ReportPageSheet pageNumber={1} totalPages={totalPages}>

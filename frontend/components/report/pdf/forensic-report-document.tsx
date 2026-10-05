@@ -11,6 +11,11 @@ import {
 } from "@react-pdf/renderer";
 import { ReportCaseData } from "@/types/report";
 import { StoredResultItem } from "@/types/results";
+import {
+	formatIncidentDate,
+	formatIncidentTime,
+	getDecisionExplanation,
+} from "@/lib/report-explain";
 
 // Styles for @react-pdf/renderer perfectly proportioned for full-page A4
 const styles = StyleSheet.create({
@@ -200,7 +205,7 @@ const styles = StyleSheet.create({
 	},
 	streamRow: {
 		flexDirection: "row",
-		paddingVertical: 3.5,
+		paddingVertical: 2,
 		borderTop: "0.5px solid #f1f5f9",
 	},
 	streamCol1: {
@@ -266,6 +271,88 @@ const styles = StyleSheet.create({
 		fontSize: 7.5,
 		color: "#94a3b8",
 	},
+	// Page 1: incident details row
+	incidentRow: {
+		flexDirection: "row",
+		marginTop: 7,
+		paddingTop: 6,
+		borderTop: "0.5px solid #e2e8f0",
+	},
+	notSpecifiedText: {
+		fontSize: 9.5,
+		fontFamily: "Helvetica-Oblique",
+		color: "#94a3b8",
+	},
+	// Image pages: slightly tighter cards so section D fits on the same page
+	imgSectionCard: {
+		backgroundColor: "#eef4f9",
+		borderRadius: 14,
+		padding: 7,
+		marginBottom: 4,
+		border: "0.5px solid #cbd5e1",
+	},
+	imgSectionSubtitle: {
+		fontSize: 8,
+		color: "#64748b",
+		marginLeft: 22,
+		marginBottom: 4,
+	},
+	imgViewportImage: {
+		width: "100%",
+		height: 74,
+		objectFit: "contain",
+		borderRadius: 6,
+	},
+	// Section D: explainable decision
+	confidenceBadge: {
+		borderRadius: 8,
+		paddingVertical: 2,
+		paddingHorizontal: 6,
+		marginRight: 7,
+	},
+	confidenceBadgeText: {
+		fontSize: 6.5,
+		fontFamily: "Helvetica-Bold",
+		color: "#ffffff",
+		letterSpacing: 0.5,
+	},
+	explainSummary: {
+		flex: 1,
+		fontSize: 7.8,
+		color: "#1e293b",
+		lineHeight: 1.35,
+		maxLines: 3,
+		textOverflow: "ellipsis",
+	},
+	evidenceHeading: {
+		fontSize: 6.5,
+		fontFamily: "Helvetica-Bold",
+		color: "#94a3b8",
+		textTransform: "uppercase",
+		marginTop: 5,
+		marginBottom: 2,
+	},
+	evidenceLabel: {
+		fontSize: 7,
+		color: "#334155",
+	},
+	evidenceValue: {
+		fontSize: 7.5,
+		fontFamily: "Helvetica-Bold",
+		color: "#0f172a",
+	},
+	evidenceTrack: {
+		flex: 1,
+		height: 4,
+		backgroundColor: "#e2e8f0",
+		borderRadius: 2,
+		marginHorizontal: 4,
+	},
+	explainNotes: {
+		marginTop: 5,
+		paddingTop: 3,
+		borderTop: "0.5px solid #f1f5f9",
+	},
 });
 
 interface ForensicReportDocumentProps {
@@ -304,6 +391,11 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 	}
 
 	const displayDate = dateVal?.trim() || dateAnalyzed;
+	const incidentDetails = [
+		{ label: "DATE OF INCIDENT", value: formatIncidentDate(caseData.caseDate), width: "25%" },
+		{ label: "TIME OF INCIDENT", value: formatIncidentTime(caseData.caseTime), width: "25%" },
+		{ label: "WHERE IT HAPPENED", value: caseData.caseLocation?.trim() || null, width: "50%" },
+	];
 
 	return (
 		<Document
@@ -364,6 +456,23 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 										{investigatorName}
 									</Text>
 								</View>
+							</View>
+
+							{/* Incident details: when and where the incident happened */}
+							<View style={styles.incidentRow}>
+								{incidentDetails.map((field) => (
+									<View
+										key={field.label}
+										style={{ width: field.width, paddingRight: 8 }}
+									>
+										<Text style={styles.labelSmall}>{field.label}</Text>
+										{field.value ? (
+											<Text style={styles.valueText}>{field.value}</Text>
+										) : (
+											<Text style={styles.notSpecifiedText}>Not specified</Text>
+										)}
+									</View>
+								))}
 							</View>
 						</View>
 					</View>
@@ -462,7 +571,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 							styles.sectionCard,
 							{
 								flex: 1,
-								minHeight: 180,
+								minHeight: 130,
 								display: "flex",
 								flexDirection: "column",
 							},
@@ -507,6 +616,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 				const isDeepfake = vLower.includes("deepfake");
 				const isAi = vLower.includes("ai") || isDeepfake;
 				const isAuthentic = vLower.includes("authentic");
+				const hasHeatmap = Boolean(result.mask_base64);
 
 				const spatialPct = Math.round(
 					(result.streams?.spatial_score ?? result.scores?.p_ai ?? 0.82) * 100,
@@ -556,6 +666,12 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 					confScore = Math.round(pAuth * 100);
 				}
 
+				const explanation = getDecisionExplanation(result);
+				const maxPoints = Math.max(
+					1,
+					...explanation.evidence.map((e) => e.points),
+				);
+
 				const filename =
 					item.originalName || result.filename || `asset${idx + 1}.jpg`;
 
@@ -570,13 +686,13 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 							}}
 						>
 							{/* Questioned Image Banner */}
-							<View style={styles.bannerQuestioned}>
+							<View style={[styles.bannerQuestioned, { marginBottom: 5, paddingVertical: 6 }]}>
 								<Text style={styles.bannerLabel}>QUESTIONED IMAGE:</Text>
 								<Text style={styles.bannerValue}>{filename}</Text>
 							</View>
 
 							{/* Ⓐ VERDICT & EXECUTIVE SUMMARY */}
-							<View style={styles.sectionCard}>
+							<View style={styles.imgSectionCard}>
 								<View style={styles.sectionHeaderRow}>
 									<View style={styles.circleIcon}>
 										<Text style={styles.circleIconText}>A</Text>
@@ -585,19 +701,20 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 										VERDICT & EXECUTIVE SUMMARY
 									</Text>
 								</View>
-								<Text style={styles.sectionSubtitle}>
+								<Text style={styles.imgSectionSubtitle}>
 									Overall finding, in plain language, for non-technical readers.
 								</Text>
 
 								<View
 									style={[
 										styles.innerWhiteBox,
+										{ padding: 8 },
 										{ flexDirection: "row", alignItems: "center" },
 									]}
 								>
 									{/* Verdict Badge */}
 									<View
-										style={[styles.verdictBox, { backgroundColor: verdictBg }]}
+										style={[styles.verdictBox, { backgroundColor: verdictBg, minHeight: 68 }]}
 									>
 										<View>
 											<Text style={styles.verdictSubtitle}>
@@ -697,14 +814,14 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 							</View>
 
 							{/* VISUAL EVIDENCE */}
-							<View style={styles.sectionCard}>
+							<View style={styles.imgSectionCard}>
 								<View style={styles.sectionHeaderRow}>
 									<View style={styles.circleIcon}>
 										<Text style={styles.circleIconText}>B</Text>
 									</View>
 									<Text style={styles.sectionTitle}>VISUAL EVIDENCE</Text>
 								</View>
-								<Text style={styles.sectionSubtitle}>
+								<Text style={styles.imgSectionSubtitle}>
 									Questioned image and heatmap overlay.
 								</Text>
 
@@ -716,27 +833,27 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 											styles.viewportCard,
 											{
 												width:
-													isSpliced && result.mask_base64 ? "48.5%" : "55%",
+													hasHeatmap ? "48.5%" : "55%",
 												marginHorizontal:
-													isSpliced && result.mask_base64 ? 0 : "auto",
+													hasHeatmap ? 0 : "auto",
 											},
 										]}
 									>
 										{item.previewUrl && (
 											<PdfImage
 												src={item.previewUrl}
-												style={styles.viewportImage}
+												style={styles.imgViewportImage}
 											/>
 										)}
 										<Text style={styles.viewportLabel}>QUESTIONED IMAGE</Text>
 									</View>
 
-									{/* GradCAM Heatmap (Spliced ONLY) */}
-									{isSpliced && result.mask_base64 && (
+									{/* GradCAM Heatmap (when a mask was returned) */}
+									{result.mask_base64 && (
 										<View style={[styles.viewportCard, { width: "48.5%" }]}>
 											<PdfImage
 												src={result.mask_base64}
-												style={styles.viewportImage}
+												style={styles.imgViewportImage}
 											/>
 											<Text style={styles.viewportLabel}>HEATMAP</Text>
 										</View>
@@ -758,8 +875,8 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 								</Text>
 
 								{/* 3 Metric Pills */}
-								<View style={styles.pillRow}>
-									<View style={styles.pillCard}>
+								<View style={[styles.pillRow, { marginTop: 4, marginBottom: 4 }]}>
+									<View style={[styles.pillCard, { padding: 5 }]}>
 										<Text style={styles.labelSmall}>SPATIAL</Text>
 										<Text
 											style={{
@@ -777,7 +894,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 										</Text>
 									</View>
 
-									<View style={styles.pillCard}>
+									<View style={[styles.pillCard, { padding: 5 }]}>
 										<Text style={styles.labelSmall}>NOISE</Text>
 										<Text
 											style={{
@@ -793,7 +910,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 										</Text>
 									</View>
 
-									<View style={styles.pillCard}>
+									<View style={[styles.pillCard, { padding: 5 }]}>
 										<Text style={styles.labelSmall}>FREQUENCY</Text>
 										<Text
 											style={{
@@ -813,7 +930,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 								</View>
 
 								{/* Stream Explanations */}
-								<View style={styles.innerWhiteBox}>
+								<View style={[styles.innerWhiteBox, { padding: 8 }]}>
 									<View style={styles.streamRow}>
 										<Text style={styles.streamCol1}>SPATIAL</Text>
 										<Text style={styles.streamCol2}>
@@ -845,14 +962,14 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 							</View>
 
 							{/* TECHNICAL BASIS (Metadata + Class Probability) */}
-							<View style={styles.sectionCard}>
+							<View style={styles.imgSectionCard}>
 								<View style={styles.sectionHeaderRow}>
 									<View style={styles.circleIcon}>
 										<Text style={styles.circleIconText}>C</Text>
 									</View>
 									<Text style={styles.sectionTitle}>TECHNICAL BASIS</Text>
 								</View>
-								<Text style={styles.sectionSubtitle}>
+								<Text style={styles.imgSectionSubtitle}>
 									Image output detail, for expert review.
 								</Text>
 
@@ -870,6 +987,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 										<View
 											style={[
 												styles.innerWhiteBox,
+												{ padding: 8 },
 												{
 													flexDirection: "row",
 													justifyContent: "space-between",
@@ -1031,8 +1149,9 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 										<View
 											style={[
 												styles.innerWhiteBox,
+												{ padding: 8 },
 												{
-													height: 68,
+													height: 60,
 													flexDirection: "row",
 													alignItems: "flex-end",
 													justifyContent: "space-around",
@@ -1104,6 +1223,112 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 											</View>
 										</View>
 									</View>
+								</View>
+							</View>
+
+							{/* EXPLAINABLE DECISION (META-CLASSIFIER) */}
+							<View style={styles.imgSectionCard}>
+								<View style={styles.sectionHeaderRow}>
+									<View style={styles.circleIcon}>
+										<Text style={styles.circleIconText}>D</Text>
+									</View>
+									<Text style={styles.sectionTitle}>EXPLAINABLE DECISION</Text>
+								</View>
+								<Text style={styles.imgSectionSubtitle}>
+									How the learned meta-classifier reached this verdict, and the
+									evidence that drove it.
+								</Text>
+
+								<View style={[styles.innerWhiteBox, { padding: 7 }]}>
+									<View style={{ flexDirection: "row", alignItems: "flex-start" }}>
+										{explanation.confidenceLabel ? (
+											<View
+												style={[
+													styles.confidenceBadge,
+													{ backgroundColor: explanation.confidenceColor },
+												]}
+											>
+												<Text style={styles.confidenceBadgeText}>
+													{explanation.confidenceLabel}
+												</Text>
+											</View>
+										) : null}
+										<Text style={styles.explainSummary}>
+											{explanation.summary}
+											{explanation.rulesCheck ? (
+												<Text style={{ color: "#64748b" }}>
+													{" "}
+													{explanation.rulesCheck}
+												</Text>
+											) : null}
+										</Text>
+									</View>
+
+									{explanation.evidence.length > 0 ? (
+										<View>
+											<Text style={styles.evidenceHeading}>
+												KEY EVIDENCE TOWARD {explanation.evidenceToward?.toUpperCase()} ·
+												IMPACT IN PERCENTAGE POINTS
+											</Text>
+											<View style={{ flexDirection: "row" }}>
+												{explanation.evidence.map((factor, i) => (
+													<View
+														key={factor.label}
+														style={{
+															flex: 1,
+															paddingLeft: i === 0 ? 0 : 7,
+															paddingRight: i === explanation.evidence.length - 1 ? 0 : 7,
+															borderLeft: i === 0 ? undefined : "0.5px solid #e2e8f0",
+														}}
+													>
+														<Text style={styles.evidenceLabel}>
+															<Text style={{ color: "#94a3b8", fontFamily: "Helvetica-Bold" }}>
+																{i + 1}.{" "}
+															</Text>
+															{factor.label}
+														</Text>
+														<View
+															style={{ flexDirection: "row", alignItems: "center", marginTop: 2 }}
+														>
+															<Text style={styles.evidenceValue}>{factor.value}</Text>
+															<View style={styles.evidenceTrack}>
+																<View
+																	style={{
+																		width: `${Math.max(6, Math.round((factor.points / maxPoints) * 100))}%`,
+																		height: 4,
+																		borderRadius: 2,
+																		backgroundColor: explanation.confidenceColor,
+																	}}
+																/>
+															</View>
+															<Text style={[styles.evidenceValue, { color: "#334155" }]}>
+																+{factor.points}
+															</Text>
+														</View>
+													</View>
+												))}
+											</View>
+										</View>
+									) : null}
+
+									{explanation.notes.length > 0 ? (
+										<View style={styles.explainNotes}>
+											<Text
+											style={{
+												fontSize: 7,
+												color: "#475569",
+												lineHeight: 1.3,
+												maxLines: 3,
+												textOverflow: "ellipsis",
+											}}
+										>
+												<Text style={{ fontFamily: "Helvetica-Bold", color: "#0f172a" }}>
+													NOTES:{" "}
+												</Text>
+												{explanation.notes.join(" ")}
+											</Text>
+										</View>
+									) : null}
 								</View>
 							</View>
 						</View>

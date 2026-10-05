@@ -2,6 +2,7 @@
 
 import React from "react";
 import { ReportCaseData } from "@/types/report";
+import { formatIncidentDate, formatIncidentTime } from "@/lib/report-explain";
 
 interface ReportFirstPageProps {
 	caseData: ReportCaseData;
@@ -13,6 +14,11 @@ export const ReportFirstPage: React.FC<ReportFirstPageProps> = ({
 	const caseNumber = caseData.caseNumber || "KIL-0417-2026";
 	const caseTitle = caseData.caseTitle || "VERIFY SUSPECT IMAGE";
 	const caseDescription = caseData.caseNotes || "";
+	const incidentDetails = [
+		{ label: "DATE OF INCIDENT", value: formatIncidentDate(caseData.caseDate), span: "col-span-1" },
+		{ label: "TIME OF INCIDENT", value: formatIncidentTime(caseData.caseTime), span: "col-span-1" },
+		{ label: "WHERE IT HAPPENED", value: caseData.caseLocation?.trim() || null, span: "col-span-2" },
+	];
 
 	let dateAnalyzed = "2026-07-18 14:32 PST";
 	let timestampShort = "07-18 · 14:32";
@@ -36,7 +42,7 @@ export const ReportFirstPage: React.FC<ReportFirstPageProps> = ({
 		<div className="flex-1 flex flex-col justify-start gap-3.5 font-sans h-full">
 			{/* Title & Agency Subtitle */}
 			<div>
-				<h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-950 uppercase font-sans">
+				<h1 className="text-2xl font-black tracking-tight text-slate-950 uppercase font-sans">
 					FORENSIC ANALYSIS REPORT
 				</h1>
 				<p className="text-[10px] font-semibold text-slate-600 tracking-tight mt-0.5">
@@ -60,7 +66,7 @@ export const ReportFirstPage: React.FC<ReportFirstPageProps> = ({
 				</p>
 
 				{/* Inner White Box */}
-				<div className="bg-white rounded-xl p-3 shadow-2xs border border-slate-200/60 grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 gap-x-4 text-[10px]">
+				<div className="bg-white rounded-xl p-3 shadow-2xs border border-slate-200/60 grid grid-cols-2 gap-y-1.5 gap-x-4 text-[10px]">
 					<div>
 						<span className="text-[8px] font-bold font-sans text-slate-400 uppercase block tracking-wider">
 							CASE NUMBER
@@ -79,13 +85,33 @@ export const ReportFirstPage: React.FC<ReportFirstPageProps> = ({
 						</span>
 					</div>
 
-					<div className="sm:col-span-2">
+					<div className="col-span-2">
 						<span className="text-[8px] font-bold font-sans text-slate-400 uppercase block tracking-wider">
 							CASE TITLE
 						</span>
 						<span className="font-bold text-slate-900 text-[10px] tracking-wide uppercase">
 							{caseTitle}
 						</span>
+					</div>
+
+					{/* Incident details: when and where the incident happened */}
+					<div className="col-span-2 grid grid-cols-4 gap-x-4 pt-2 mt-0.5 border-t border-slate-100">
+						{incidentDetails.map((field) => (
+							<div key={field.label} className={field.span}>
+								<span className="text-[8px] font-bold font-sans text-slate-400 uppercase block tracking-wider">
+									{field.label}
+								</span>
+								{field.value ? (
+									<span className="font-bold text-slate-900 text-[10px] tracking-wide wrap-break-word">
+										{field.value}
+									</span>
+								) : (
+									<span className="font-medium text-slate-400 text-[10px] italic">
+										Not specified
+									</span>
+								)}
+							</div>
+						))}
 					</div>
 				</div>
 			</div>
@@ -159,7 +185,7 @@ export const ReportFirstPage: React.FC<ReportFirstPageProps> = ({
 			</div>
 
 			{/* ③ CASE DESCRIPTION/NOTES (Flex to fill remaining space) */}
-			<div className="bg-[#eef4f9] rounded-2xl p-4 shadow-2xs border border-slate-200/80 flex-1 flex flex-col min-h-55">
+			<div className="bg-[#eef4f9] rounded-2xl p-4 shadow-2xs border border-slate-200/80 flex-1 flex flex-col min-h-40">
 				<div className="flex items-center gap-2 mb-0.5">
 					<div className="w-4 h-4 rounded-full border border-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-900 font-sans">
 						3

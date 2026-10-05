@@ -40,11 +40,7 @@ export const EvidenceViewport: React.FC<EvidenceViewportProps> = ({
 }) => {
 	const currentResult = currentItem.result;
 
-	const isSpliced =
-		Boolean(currentResult.mask_base64) &&
-		(currentResult.verdict === "Spliced" ||
-			currentResult.verdict === "AI-generated + spliced" ||
-			hasHeatmap);
+	const isSpliced = hasHeatmap && Boolean(currentResult.mask_base64);
 
 	return (
 		<div className="bg-[#e4ebf3] rounded-3xl p-4 sm:p-5 border border-slate-300/80 shadow-xs space-y-3">
@@ -168,7 +164,8 @@ export const EvidenceViewport: React.FC<EvidenceViewportProps> = ({
 						const isSelected = idx === selectedIndex;
 						const itemSplice =
 							item.result.verdict === "Spliced" ||
-							item.result.verdict === "AI-generated + spliced";
+							item.result.verdict === "AI-generated + spliced" ||
+							Boolean(item.result.mask_base64);
 						return (
 							<button
 								key={`${item.originalName}-${idx}`}

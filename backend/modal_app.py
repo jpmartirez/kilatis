@@ -28,15 +28,23 @@ image = (
         # AI & Computer Vision Models
         "torch",
         "torchvision",
-        "numpy<2",
+        "numpy>=2.5.2",
         "pillow",
         "pillow-heif",
         "timm",
         "PyWavelets",
         "scipy",
         "opencv-python-headless",
-        "imdlbenco==0.1.45",
+        # Learned decision layer (meta-classifier)
+        "scikit-learn==1.9.0",  # MUST match the version used to save app/ai/weights/decider.joblib
+        "joblib",
+        # Runtime dependencies of IMDLBenCo / TruFor
+        "albumentations>=2.0.8",
+        "fvcore",
+        "colorama",
     )
+    # IMDLBenCo pins numpy<2 and albumentations==1.3.0; install it without its pins
+    .pip_install("imdlbenco==0.1.45", extra_options="--no-deps")
     .add_local_dir("app", remote_path="/root/app")
     .add_local_file("main.py", remote_path="/root/main.py")
     .add_local_file(".env", remote_path="/root/.env")

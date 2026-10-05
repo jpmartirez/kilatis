@@ -50,17 +50,18 @@ export default function ResultsPage() {
   const isCurrentSpliced =
     currentResult?.verdict === "Spliced" ||
     currentResult?.verdict === "AI-generated + spliced";
-  const hasHeatmap = Boolean(isCurrentSpliced && currentResult?.mask_base64);
+  // The backend only sends a mask for spliced verdicts or a noted pasted region (e.g. AI-generated + pasted area)
+  const hasHeatmap = Boolean(currentResult?.mask_base64);
 
   // Reset tab & zoom upon image selection change
   useEffect(() => {
     setZoomLevel(1);
-    if (isCurrentSpliced && hasHeatmap) {
+    if (hasHeatmap) {
       setActiveTab("heatmap");
     } else {
       setActiveTab("asset");
     }
-  }, [selectedIndex, isCurrentSpliced, hasHeatmap]);
+  }, [selectedIndex, hasHeatmap]);
 
   const handleNewAnalysis = async () => {
     try {
@@ -152,7 +153,7 @@ export default function ResultsPage() {
         bg: "bg-[#dc2626] text-white",
         subtitle: "TAMPER DETECTED",
         title: "SPLICED",
-        conf: `${Math.round(pSplice * 100)}%`,
+        conf: `${Math.round(pTradSplice * 100)}%`,
       };
     }
     if (v.includes("ai") && v.includes("splice")) {

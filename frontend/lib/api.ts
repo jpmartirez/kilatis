@@ -44,7 +44,15 @@ export interface ClassProbabilities {
 
 export interface ImageAnalysisResult {
   filename: string;
-  verdict: "Authentic" | "Spliced" | "AI-generated" | "Deepfake" | "AI-generated + spliced" | "Manual review" | string;
+  verdict:
+    | "Authentic"
+    | "Spliced"
+    | "AI-generated / deepfake"
+    | "AI-generated"
+    | "Deepfake"
+    | "AI-generated + spliced"
+    | "Manual review"
+    | string;
   headline: string;
   scores: DetectionScores;
   streams?: StreamEvidence;
@@ -56,6 +64,12 @@ export interface ImageAnalysisResult {
   mask_base64?: string | null;
   status: "success" | "error" | string;
   error?: string | null;
+  // Learned decision layer (meta-classifier); absent on results saved before it existed
+  decider?: "learned" | "rules" | string;
+  confidence?: "high" | "moderate" | "low" | "manual review" | string | null;
+  reasons?: string[];
+  rules_verdict?: string | null;
+  conflicts?: string[];
 }
 
 export interface BatchDetectionResponse {
@@ -86,6 +100,14 @@ export async function loginUser(username: string, password: string): Promise<Tok
   return res.json();
 }
 
+/** Thrown when the backend rejects the stored token (expired, revoked, or signed with another key). */
+export class SessionExpiredError extends Error {
+  constructor() {
+    super("Session expired. Please log in again.");
+    this.name = "SessionExpiredError";
+  }
+}
+
 export async function getCurrentUser(token: string): Promise<User> {
   const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
     headers: {
@@ -94,8 +116,11 @@ export async function getCurrentUser(token: string): Promise<User> {
     },
   });
 
+  if (res.status === 401) {
+    throw new SessionExpiredError();
+  }
   if (!res.ok) {
-    throw new Error("Invalid session");
+    throw new Error(`Could not verify session (HTTP ${res.status})`);
   }
 
   return res.json();

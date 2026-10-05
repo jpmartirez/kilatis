@@ -1,12 +1,9 @@
-from app.ai.detector import KilatisDetector, get_detector
 from app.ai.schemas import ImageAnalysisResult, BatchDetectionResponse
-from app.ai.labels import Cls, resolve_final_label
+from app.ai.kilatis_orchestrator import KilatisOrchestrator, get_orchestrator
 
 __all__ = [
-    "KilatisDetector",
-    "get_detector",
+    "KilatisOrchestrator",
+    "get_orchestrator",
     "ImageAnalysisResult",
     "BatchDetectionResponse",
-    "Cls",
-    "resolve_final_label",
 ]

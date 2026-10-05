@@ -9,6 +9,7 @@ import {
 	analyzeEvidenceImages,
 	saveCaseSession,
 	BatchDetectionResponse,
+	SessionExpiredError,
 } from "@/lib/api";
 import { setStoredResults } from "@/lib/storage";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
@@ -76,7 +77,19 @@ export default function MainPage() {
 				setCaseNumber((prev) => prev || autoCaseNumber);
 				setIsCheckingAuth(false);
 			} catch (err) {
-				console.error("Failed to fetch fresh user from database:", err);
+				// Expired / rejected token: clear the session and return to login
+				if (err instanceof SessionExpiredError) {
+					localStorage.removeItem("token");
+					localStorage.removeItem("user");
+					document.cookie =
+						"auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+					document.cookie =
+						"user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+					router.replace("/");
+					return;
+				}
+				// Backend unreachable: keep working with the cached user
+				console.warn("Failed to fetch fresh user from database:", err);
 				try {
 					const parsed = JSON.parse(storedUser);
 					const formattedName = parsed.username.toUpperCase().startsWith("PLT ")

@@ -150,7 +150,7 @@
     min-height: 297mm !important;
     height: 297mm !important;
     max-height: 297mm !important;
-    padding: 10mm 12mm !important;
+    padding: 32px !important; /* same as the on-screen sheet (p-8) so printed pages keep the on-screen layout */
     margin: 0 auto !important;
     box-shadow: none !important;
     border: none !important;

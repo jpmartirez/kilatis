@@ -44,6 +44,12 @@ class ImageAnalysisResult(BaseModel):
     mask_base64: Optional[str] = None
     status: str = "success"
     error: Optional[str] = None
+    # Learned decision layer (meta-classifier); optional so older clients keep working
+    decider: str = "rules"                 # "learned" or "rules"
+    confidence: Optional[str] = None       # "high" | "moderate" | "low" | "manual review"
+    reasons: List[str] = []                # top evidence behind the verdict
+    rules_verdict: Optional[str] = None    # rule-based (4-gate) verdict, kept for comparison
+    conflicts: List[str] = []              # e.g. ["both_positive", "near_cutoff"]
 
 
 class BatchDetectionResponse(BaseModel):
