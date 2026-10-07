@@ -3,7 +3,8 @@
 
 import React, { useRef, useState } from "react";
 import { EvidenceItem } from "./upload/types";
-import { isImageFile, traverseDirectoryEntry } from "./upload/upload-utils";
+import { isImageFile, splitValidImages, traverseDirectoryEntry } from "./upload/upload-utils";
+import { UploadNotice, UploadNoticeModal } from "./upload-notice-modal";
 import { EmptyDropzone } from "./upload/empty-dropzone";
 import { EvidenceGallery } from "./upload/evidence-gallery";
 
@@ -23,15 +24,41 @@ export const UploadEvidenceSection: React.FC<UploadEvidenceSectionProps> = ({
   const folderInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
+  const [notice, setNotice] = useState<UploadNotice | null>(null);
 
-  const addValidFiles = (files: File[]) => {
-    const validImages = files.filter(isImageFile);
+  /**
+   * Check files by their CONTENT and add only real images.
+   *  - `direct`: files the user picked or dropped one by one -> every rejected file is reported.
+   *  - `fromFolders`: files found inside a folder -> already limited to image names; fake images are reported.
+   */
+  const addCheckedFiles = async (direct: File[], fromFolders: File[] = []) => {
+    const { valid, rejected } = await splitValidImages([...direct, ...fromFolders]);
 
-    if (validImages.length === 0) {
-      alert("No valid image files found (Supported: PNG, JPG, JPEG, WEBP, etc.).");
-      return;
+    if (valid.length > 0) addEvidence(valid);
+
+    if (rejected.length > 0) {
+      setNotice({
+        variant: "warning",
+        title: valid.length > 0 ? "Some Files Were Not Added" : "Files Not Accepted",
+        message:
+          valid.length > 0
+            ? "Only real image files can be used as evidence. The files below were skipped; the rest were added."
+            : "Only real image files can be used as evidence. None of the selected files could be added.",
+        addedCount: valid.length,
+        rejected,
+        showFormats: true,
+      });
+    } else if (valid.length === 0) {
+      setNotice({
+        variant: "warning",
+        title: "No Images Found",
+        message: "The selected folder does not contain any image files.",
+        showFormats: true,
+      });
     }
+  };
 
+  const addEvidence = (validImages: File[]) => {
     const newItems: EvidenceItem[] = validImages.map((file) => ({
       id: `${file.name}-${file.size}-${file.lastModified}-${Math.random()
         .toString(36)
@@ -43,19 +70,25 @@ export const UploadEvidenceSection: React.FC<UploadEvidenceSectionProps> = ({
     setEvidenceFiles((prev) => [...prev, ...newItems]);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const filesArray = Array.from(e.target.files);
-      addValidFiles(filesArray);
       e.target.value = "";
+      await addCheckedFiles(filesArray);
     }
   };
 
-  const handleFolderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFolderChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const filesArray = Array.from(e.target.files);
-      addValidFiles(filesArray);
+      // Inside a folder, other file types (documents, notes, ...) are skipped quietly.
+      const imageNamed = Array.from(e.target.files).filter(isImageFile);
       e.target.value = "";
+      setIsScanning(true);
+      try {
+        await addCheckedFiles([], imageNamed);
+      } finally {
+        setIsScanning(false);
+      }
     }
   };
 
@@ -74,34 +107,42 @@ export const UploadEvidenceSection: React.FC<UploadEvidenceSectionProps> = ({
     setIsDragging(false);
     setIsScanning(true);
 
+    // Read everything from the drop NOW: the browser empties dataTransfer after the first await.
+    const items = e.dataTransfer.items;
+    const droppedFiles = Array.from(e.dataTransfer.files ?? []);
+    const entries: any[] = [];
+    if (items && items.length > 0 && (items[0] as any).webkitGetAsEntry) {
+      for (let i = 0; i < items.length; i++) {
+        const entry = (items[i] as any).webkitGetAsEntry();
+        if (entry) entries.push(entry);
+      }
+    }
+
     try {
-      const items = e.dataTransfer.items;
-      const extractedFiles: File[] = [];
+      const direct: File[] = [];
+      const fromFolders: File[] = [];
 
-      if (items && items.length > 0 && (items[0] as any).webkitGetAsEntry) {
-        const entries: any[] = [];
-        for (let i = 0; i < items.length; i++) {
-          const entry = (items[i] as any).webkitGetAsEntry();
-          if (entry) entries.push(entry);
-        }
-
+      if (entries.length > 0) {
         for (const entry of entries) {
-          const filesFromEntry = await traverseDirectoryEntry(entry);
-          extractedFiles.push(...filesFromEntry);
+          if (entry.isDirectory) {
+            fromFolders.push(...(await traverseDirectoryEntry(entry)));   // image-named files only
+          } else {
+            const file = await new Promise<File | null>((resolve) => entry.file(resolve, () => resolve(null)));
+            if (file) direct.push(file);
+          }
         }
-      } else if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-        const filesArray = Array.from(e.dataTransfer.files);
-        extractedFiles.push(...filesArray.filter(isImageFile));
+      } else {
+        direct.push(...droppedFiles);
       }
 
-      if (extractedFiles.length > 0) {
-        addValidFiles(extractedFiles);
-      } else {
-        alert("No valid images found in the dropped files or folders.");
-      }
+      await addCheckedFiles(direct, fromFolders);
     } catch (err) {
       console.error("Error processing dropped items:", err);
-      alert("Error scanning files. Please try using the file picker.");
+      setNotice({
+        variant: "error",
+        title: "Upload Error",
+        message: "The dropped files could not be read. Please try the Select Images button instead.",
+      });
     } finally {
       setIsScanning(false);
     }
@@ -128,6 +169,7 @@ export const UploadEvidenceSection: React.FC<UploadEvidenceSectionProps> = ({
 
   return (
     <section className="space-y-3">
+      <UploadNoticeModal notice={notice} onClose={() => setNotice(null)} />
       {/* Hidden File Inputs */}
       <input
         ref={fileInputRef}

@@ -12,6 +12,7 @@ import {
 	SessionExpiredError,
 } from "@/lib/api";
 import { setStoredResults } from "@/lib/storage";
+import { UploadNotice, UploadNoticeModal } from "@/components/dashboard/upload-notice-modal";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { CaseDetailsSection } from "@/components/dashboard/case-details-section";
 import {
@@ -48,6 +49,7 @@ export default function MainPage() {
 	const [ackSubmissionLog, setAckSubmissionLog] = useState(false);
 
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [notice, setNotice] = useState<UploadNotice | null>(null);
 
 	useEffect(() => {
 		const token = localStorage.getItem("token");
@@ -224,8 +226,30 @@ export default function MainPage() {
 
 			router.push("/results");
 		} catch (err) {
-			console.error("Error running AI detection analysis:", err);
-			alert("Analysis failed. Please ensure the backend is running.");
+			console.warn("AI detection analysis did not run:", err);
+			if (err instanceof TypeError) {
+				// fetch() itself failed: the server could not be reached
+				setNotice({
+					variant: "error",
+					title: "Connection Error",
+					message:
+						"The analysis could not start because the KILATIS server could not be reached. Please make sure the backend is running and try again.",
+				});
+			} else {
+				// The server refused the upload, e.g. "File 'x.png' was rejected: its content is not a real image ..."
+				const detail = err instanceof Error ? err.message : String(err);
+				const match = /^File '(.+)' was rejected: (.+)$/s.exec(detail);
+				setNotice({
+					variant: "error",
+					title: "Upload Rejected",
+					message: "The server checked the evidence files and refused this upload. No images were analyzed.",
+					rejected: match
+						? [{ name: match[1], code: "server", reason: match[2].charAt(0).toUpperCase() + match[2].slice(1) }]
+						: undefined,
+					...(match ? {} : { message: detail }),
+					showFormats: Boolean(match),
+				});
+			}
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -246,6 +270,7 @@ export default function MainPage() {
 
 	return (
 		<div className="min-h-screen w-full bg-[#edf2f7] text-slate-800 font-sans selection:bg-slate-800 selection:text-white py-6 sm:py-8 lg:py-10 px-4 sm:px-6 lg:px-8 overflow-y-auto">
+			<UploadNoticeModal notice={notice} onClose={() => setNotice(null)} />
 			<div className="max-w-4xl mx-auto space-y-5 sm:space-y-6">
 				<DashboardHeader
 					investigatorName={investigatorUsername}
