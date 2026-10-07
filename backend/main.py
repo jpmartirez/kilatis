@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import init_db
 from app.routers import auth_router, users_router, detection_router, sessions_router
-from app.ai.kilatis_orchestrator import get_orchestrator
+from app.ai.orchestrator import get_orchestrator
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
