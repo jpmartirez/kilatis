@@ -4,7 +4,7 @@ import tempfile
 import asyncio
 from typing import List, Optional
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, status
-from app.ai.kilatis_orchestrator import get_orchestrator
+from app.ai.orchestrator import get_orchestrator
 from app.ai.schemas import BatchDetectionResponse, ImageAnalysisResult
 
 router = APIRouter(prefix="/api/detection", tags=["KILATIS Image Forensics"])

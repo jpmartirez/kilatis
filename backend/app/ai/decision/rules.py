@@ -1,36 +1,15 @@
-"""
-KILATIS — Reliability & Decision layer (the "amber" fusion core).
 
-Turns two INDEPENDENT branch outputs into one coherent finding:
-  - Branch 1  -> mean P(AI)            (whole-image AI/deepfake)
-  - Branch 2  -> sigmoid(det) + mask   (splice detection + localization)
-
-It is a GATED VERDICT MATRIX, not a fused score. The two branches answer
-orthogonal questions on different scales, so their raw scores are kept
-separate and visible; the layer only decides how they COMBINE into a verdict.
-
-Design:
-  Gate 0  input-quality  -> marks an axis not-assessable (abstain), BEFORE scores.
-  Gate 1  axis decision  -> each axis: positive / negative, with a coarse tier.
-  Gate 2  AI-suppresses-splice -> if AI is HIGH-confidence positive, a positive
-          splice is demoted to a low-confidence secondary note (TruFor's
-          noiseprint is out-of-domain on fully synthetic images).
-  Gate 3  assemble       -> the verdict matrix, including abstain paths.
-"""
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
-import numpy as np
-from PIL import Image
+from app.ai.decision.quality import Quality
 
-AI_THR, AI_MOD, AI_HIGH = 0.5422, 0.80, 0.87          # Branch 1  (mean P(AI))
-SPLICE_THR, SPLICE_MOD, SPLICE_HIGH = 0.520, 0.60, 0.80  # Branch 2  sigmoid(det)
-
-MIN_LONG_EDGE = 256      # below this, Branch 1's native-res tiling degenerates
-GRAY_SPREAD_EPS = 1.0    # mean inter-channel spread below this => effectively grayscale
+# Thresholds: score >= THR is "positive". MOD / HIGH set the confidence tier.
+AI_THR, AI_MOD, AI_HIGH = 0.5422, 0.80, 0.87              # Branch 1: P(AI)
+SPLICE_THR, SPLICE_MOD, SPLICE_HIGH = 0.520, 0.60, 0.80   # Branch 2: P(splice)
 
 
 class Tier(str, Enum):
@@ -47,6 +26,7 @@ class AxisState(str, Enum):
 
 @dataclass
 class Axis:
+    """The rules' finding on one question (AI? or splice?)."""
     name: str
     score: Optional[float]
     threshold: float
@@ -54,14 +34,6 @@ class Axis:
     tier: Optional[Tier] = None
     demoted: bool = False
     demote_reason: str = ""
-
-
-@dataclass
-class Quality:
-    ai_ok: bool = True
-    splice_ok: bool = True
-    degrade: bool = False               
-    notes: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -74,32 +46,8 @@ class Report:
     quality: Quality
 
 
-def input_quality(path: str) -> Quality:
-    q = Quality()
-    im = Image.open(path)
-    w, h = im.size
-    exif = im.getexif()
-    rgb = np.asarray(im.convert("RGB")).astype(np.float32)
-
-    spread = (np.mean(np.abs(rgb[..., 0] - rgb[..., 1]))
-              + np.mean(np.abs(rgb[..., 1] - rgb[..., 2]))) / 2.0
-    if spread < GRAY_SPREAD_EPS:
-        q.splice_ok = False
-        q.notes.append("near-grayscale input -> splice axis not assessable (DVMM 0.676 floor)")
-
-    if max(w, h) < MIN_LONG_EDGE:
-        q.ai_ok = False
-        q.notes.append(f"long edge {max(w, h)}px < {MIN_LONG_EDGE} -> AI tiling degenerate")
-
-    software = str(exif.get(305, "")).lower()  # tag 305 = Software
-    if "screenshot" in software or "screen shot" in software:
-        q.degrade = True
-        q.notes.append("EXIF marks screenshot -> forensic traces may be destroyed")
-
-    return q
-
-
 def classify(name: str, score: Optional[float], thr: float, mod: float, high: float) -> Axis:
+    """Gate 1: positive / negative / not-assessable, and how sure (low / moderate / high)."""
     if score is None:
         return Axis(name, None, thr, AxisState.NOT_ASSESSABLE)
 
@@ -120,6 +68,7 @@ def _tier_down(ax: Axis) -> Axis:
 
 
 def _assemble(ai: Axis, spl: Axis) -> tuple[str, str, list[str]]:
+    """Gate 3: turn the two axes into one verdict."""
     A, S = ai.state, spl.state
     NA, POS, NEG = AxisState.NOT_ASSESSABLE, AxisState.POSITIVE, AxisState.NEGATIVE
     detail: list[str] = []
@@ -153,14 +102,14 @@ def _assemble(ai: Axis, spl: Axis) -> tuple[str, str, list[str]]:
 
 
 def evaluate(quality: Quality, p_ai: float, det_score: float, has_mask: bool = False) -> Report:
-    """Core policy. Model-agnostic: pass the two scores + a Quality object."""
+    """Run Gates 1-3 on the two branch scores."""
     ai = classify("AI", p_ai if quality.ai_ok else None, AI_THR, AI_MOD, AI_HIGH)
     spl = classify("Splice", det_score if quality.splice_ok else None, SPLICE_THR, SPLICE_MOD, SPLICE_HIGH)
 
     if quality.degrade:
         ai, spl = _tier_down(ai), _tier_down(spl)
 
-    # Gate 2: AI-suppresses-splice (fires ONLY at HIGH-tier AI).
+    # Gate 2: AI beats splice (only when the AI result is HIGH).
     if ai.state == AxisState.POSITIVE and ai.tier == Tier.HIGH and spl.state == AxisState.POSITIVE:
         spl.demoted = True
         spl.demote_reason = "image reads fully synthetic; noiseprint has no camera origin to read"
@@ -171,8 +120,3 @@ def evaluate(quality: Quality, p_ai: float, det_score: float, has_mask: bool = F
     if has_mask and spl.state == AxisState.POSITIVE:
         detail.append("localization mask available")
     return Report(verdict, headline, detail, ai, spl, quality)
-
-
-def evaluate_path(path: str, p_ai: float, det_score: float, has_mask: bool = False) -> Report:
-    """Convenience wrapper that computes Gate 0 from the image on disk."""
-    return evaluate(input_quality(path), p_ai, det_score, has_mask)

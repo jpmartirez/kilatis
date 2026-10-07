@@ -1,33 +1,15 @@
-"""
-KILATIS — Learned decision layer (meta-classifier).
 
-Replaces the hand-made if-else verdict table in decision.py with a small trained
-model. The model reads ALL evidence both branches already produce and learns,
-from labeled calibration images, which branch to trust when they disagree.
-
-  Step 1  evidence     -> fixed-order feature vector (FEATURE_NAMES)
-  Step 2  model        -> P(class) for authentic / spliced / ai_generated
-                          (ai_generated includes deepfakes: one verdict "AI-generated / deepfake")
-  Step 3  confidence   -> top < tau, or (top - second) < delta  =>  Manual review
-  Step 4  safety rules -> no assessable branch => Manual review;
-                          poor input / missing branch => confidence one level down
-  Step 5  reasons      -> the evidence that raised the chosen class the most
-
-Train the model with collect_features.py + train_decider.py. When no trained
-bundle exists, the orchestrator falls back to the rule-based decision.evaluate.
-"""
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass, field
 from typing import Optional
 
 import numpy as np
 
-from app.ai.kilatis_decision import AI_THR, SPLICE_THR
+from app.ai.config import DECIDER_PATH
+from app.ai.decision.rules import AI_THR, SPLICE_THR
 
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_DECIDER_PATH = os.path.join(CURRENT_DIR, "weights", "decider.joblib")
+DEFAULT_DECIDER_PATH = DECIDER_PATH
 
 # Order matters: the trained model expects exactly this order.
 FEATURE_NAMES = [
@@ -65,16 +47,6 @@ FEATURE_LABELS = {
     "mask_face_overlap": "Share of tampered area lying on a face",
     "is_screenshot": "Screenshot input",
 }
-
-# Feature groups for the ablation study (train_decider.py, manuscript Table E).
-ABLATION_STEPS = [
-    ("p_ai + p_splice only (same input as old rules)", ["ai_ok", "p_ai", "splice_ok", "p_splice"]),
-    ("+ stream and tile scores", ["p_tile", "p_tile_max", "p_tile_std",
-                                  "p_spatial", "p_frequency", "p_wavelet", "stream_spread"]),
-    ("+ face evidence", ["has_face", "p_face", "face_minus_tile", "n_faces"]),
-    ("+ mask evidence", ["noise_inconsistency", "mask_area", "mask_max", "mask_face_overlap"]),
-    ("+ quality flags (full model)", ["is_screenshot"]),
-]
 
 # Deepfakes are AI-generated content, so they share one class and one verdict.
 CLASSES = ["authentic", "spliced", "ai_generated"]

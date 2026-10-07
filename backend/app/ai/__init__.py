@@ -1,5 +1,11 @@
-from app.ai.schemas import ImageAnalysisResult, BatchDetectionResponse
-from app.ai.kilatis_orchestrator import KilatisOrchestrator, get_orchestrator
+"""
+KILATIS AI package: the image forensics pipeline.
+
+Start reading at orchestrator.py - it runs every step in order and points to the
+file that does each step.
+"""
+from app.ai.orchestrator import KilatisOrchestrator, get_orchestrator
+from app.ai.schemas import BatchDetectionResponse, ImageAnalysisResult
 
 __all__ = [
     "KilatisOrchestrator",
