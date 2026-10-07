@@ -204,7 +204,7 @@ export const CaseDetailsSection: React.FC<CaseDetailsSectionProps> = ({
             type="text"
             value={investigatorName}
             onChange={(e) => setInvestigatorName(e.target.value)}
-            placeholder="PLT JOHN DOE"
+            placeholder="e.g. Juan Dela Cruz"
             className="w-full bg-[#edf2f7] hover:bg-[#e7eff6] focus:bg-white text-slate-900 placeholder:text-slate-400 placeholder:text-xs text-xs sm:text-sm font-medium rounded-full h-11 sm:h-12 px-5 border border-transparent focus:border-slate-300 focus:outline-none transition-all"
             required
           />

@@ -70,12 +70,11 @@ export default function MainPage() {
 					getCurrentUser(token),
 					getNextCaseNumber(token),
 				]);
-				const formattedName = dbUser.username.toUpperCase().startsWith("PLT ")
-					? dbUser.username.toUpperCase()
-					: `PLT ${dbUser.username.toUpperCase()}`;
+				// Show the account name exactly as the admin created it
+				const accountName = dbUser.username.trim();
 
-				setInvestigatorUsername(formattedName);
-				setInvestigatorName(formattedName);
+				setInvestigatorUsername(accountName);
+				setInvestigatorName(accountName);
 				setCaseNumber((prev) => prev || autoCaseNumber);
 				setIsCheckingAuth(false);
 			} catch (err) {
@@ -94,11 +93,9 @@ export default function MainPage() {
 				console.warn("Failed to fetch fresh user from database:", err);
 				try {
 					const parsed = JSON.parse(storedUser);
-					const formattedName = parsed.username.toUpperCase().startsWith("PLT ")
-						? parsed.username.toUpperCase()
-						: `PLT ${parsed.username.toUpperCase()}`;
-					setInvestigatorUsername(formattedName);
-					setInvestigatorName(formattedName);
+					const accountName = String(parsed.username).trim();
+					setInvestigatorUsername(accountName);
+					setInvestigatorName(accountName);
 					setIsCheckingAuth(false);
 					getNextCaseNumber(token).then((autoNum) =>
 						setCaseNumber((prev) => prev || autoNum)
