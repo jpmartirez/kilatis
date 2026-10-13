@@ -1255,12 +1255,6 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 										) : null}
 										<Text style={styles.explainSummary}>
 											{explanation.summary}
-											{explanation.rulesCheck ? (
-												<Text style={{ color: "#64748b" }}>
-													{" "}
-													{explanation.rulesCheck}
-												</Text>
-											) : null}
 										</Text>
 									</View>
 

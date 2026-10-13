@@ -23,8 +23,6 @@ export const DecisionBasisCard: React.FC<DecisionBasisCardProps> = ({ result }) 
 
   const badge = CONFIDENCE_STYLES[confidence];
   const isManualReview = confidence === "manual review" || result.verdict === "Manual review";
-  const showRulesVerdict =
-    Boolean(result.rules_verdict) && result.rules_verdict !== result.verdict;
 
   return (
     <div className="bg-[#e4ebf3] rounded-3xl p-4 sm:p-5 border border-slate-300/80 shadow-xs space-y-3">
@@ -68,12 +66,6 @@ export const DecisionBasisCard: React.FC<DecisionBasisCardProps> = ({ result }) 
               ))}
             </ul>
           </div>
-        )}
-
-        {showRulesVerdict && (
-          <p className="text-[10px] text-slate-500 pt-2 border-t border-slate-100">
-            Rule-based check: <strong className="text-slate-700">{result.rules_verdict}</strong>
-          </p>
         )}
       </div>
     </div>

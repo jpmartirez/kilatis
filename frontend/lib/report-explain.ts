@@ -43,7 +43,6 @@ export interface DecisionExplanation {
 	confidenceLabel: string;
 	confidenceColor: string;
 	summary: string;
-	rulesCheck: string | null;
 	evidenceToward: string | null;
 	evidence: EvidenceFactor[];
 	notes: string[];
@@ -115,7 +114,6 @@ export function getDecisionExplanation(result: ImageAnalysisResult): DecisionExp
 			...base,
 			available: false,
 			summary: "A decision explanation is not available for this result (it was analysed before the explainable decision layer was introduced).",
-			rulesCheck: null,
 		};
 	}
 
@@ -124,7 +122,6 @@ export function getDecisionExplanation(result: ImageAnalysisResult): DecisionExp
 			...base,
 			available: true,
 			summary: "This verdict was produced by the rule-based decision gates because the learned meta-classifier was not available, so no evidence ranking is provided.",
-			rulesCheck: null,
 		};
 	}
 
@@ -146,13 +143,5 @@ export function getDecisionExplanation(result: ImageAnalysisResult): DecisionExp
 		summary = `Combining the evidence from both detection branches, the meta-classifier assigned ${pct(top.p)} probability to ${verdict} (next: ${second.label} ${pct(second.p)}).`;
 	}
 
-	const rules = result.rules_verdict?.trim();
-	let rulesCheck: string | null = null;
-	if (rules) {
-		if (verdict === "Manual review") rulesCheck = `Rule-based cross-check suggested "${rules}".`;
-		else if (rules === verdict) rulesCheck = "Rule-based cross-check agrees.";
-		else rulesCheck = `Rule-based cross-check gave "${rules}"; resolved by the meta-classifier.`;
-	}
-
-	return { ...base, available: true, summary, rulesCheck };
+	return { ...base, available: true, summary };
 }

@@ -465,9 +465,6 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
             )}
             <p className="text-[9.5px] text-slate-800 leading-snug line-clamp-3">
               {explanation.summary}
-              {explanation.rulesCheck && (
-                <span className="text-slate-500"> {explanation.rulesCheck}</span>
-              )}
             </p>
           </div>
 
