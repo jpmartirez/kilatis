@@ -10,6 +10,11 @@ from typing import Optional
 import numpy as np
 import torch
 
+# Full FP32 precision on the GPU (no TF32 shortcuts), so TruFor's scores match full-precision results.
+# These flags apply to the whole process, so Branch 1 also runs in full FP32.
+torch.backends.cudnn.allow_tf32 = False
+torch.backends.cuda.matmul.allow_tf32 = False
+
 from app.ai.config import BRANCH2_CONFIG, BRANCH2_MIT_B2, BRANCH2_NOISEPRINT, BRANCH2_WEIGHTS
 
 MASK_SIZE = (512, 512)   # TruFor reads a resized 512x512 copy of the image

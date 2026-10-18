@@ -33,9 +33,9 @@ def generate_heatmap_base64(image: Image.Image, mask: np.ndarray) -> str:
     return f"data:image/jpeg;base64,{base64.b64encode(buffer).decode('utf-8')}"
 
 
-def should_show_heatmap(verdict: str, detail: list[str]) -> bool:
-    """Show the mask for splice verdicts, or when the decider notes a pasted region (e.g. AI image + pasted part)."""
-    return verdict in ("Spliced", "AI-generated + spliced") or any("pasted region" in d for d in detail)
+def should_show_heatmap(verdict: str) -> bool:
+    """Show the mask only when the verdict reports splicing."""
+    return verdict in ("Spliced", "AI-generated + spliced")
 
 
 def axis_detail(ax: rules.Axis) -> AxisDetail:

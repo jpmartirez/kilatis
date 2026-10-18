@@ -168,9 +168,9 @@ class KilatisOrchestrator:
             else:
                 decision = verdict.decide_with_rules(rules_report, rules_verdict, b1.p_ai, b2.p_splice)
 
-            # Step 7 - build the answer (with a heatmap when a pasted region is reported)
+            # Step 7 - build the answer (with a heatmap only when the verdict is Spliced)
             mask_b64 = None
-            if upright_mask is not None and should_show_heatmap(decision.verdict, decision.detail):
+            if upright_mask is not None and should_show_heatmap(decision.verdict):
                 mask_b64 = generate_heatmap_base64(image, upright_mask)
 
             self._log_summary(filename, time.time() - started, decision, rules_verdict, b1, b2)

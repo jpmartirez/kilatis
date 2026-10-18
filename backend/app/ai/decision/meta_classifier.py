@@ -232,7 +232,7 @@ class MetaDecider:
         # Secondary findings the main verdict does not cover.
         if top_class == "ai_generated" and splice_ok and ev["p_splice"] >= SPLICE_THR:
             detail.append(f"secondary note: a possible pasted region is also marked "
-                          f"(splice score {ev['p_splice']:.2f}, see mask)")
+                          f"(splice score {ev['p_splice']:.2f})")
         if top_class == "spliced" and ai_ok and ev["p_ai"] >= AI_THR:
             detail.append(f"secondary note: AI signal also present (AI score {ev['p_ai']:.2f}); "
                           f"the pasted region may itself be AI-generated")
