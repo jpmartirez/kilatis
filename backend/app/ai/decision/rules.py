@@ -9,7 +9,7 @@ from app.ai.decision.quality import Quality
 
 # Thresholds: score >= THR is "positive". MOD / HIGH set the confidence tier.
 AI_THR, AI_MOD, AI_HIGH = 0.5422, 0.80, 0.87              # Branch 1: P(AI)
-SPLICE_THR, SPLICE_MOD, SPLICE_HIGH = 0.520, 0.60, 0.80   # Branch 2: P(splice)
+SPLICE_THR, SPLICE_MOD, SPLICE_HIGH = 0.4500, 0.60, 0.80   # Branch 2: P(splice)
 
 
 class Tier(str, Enum):
