@@ -2,9 +2,14 @@
 from __future__ import annotations
 
 import os
+import tempfile
+import threading
 import time
 import traceback
 from typing import Optional
+
+import numpy as np
+from PIL import Image
 
 from app.ai import image_io
 from app.ai.branch1.detector import Branch1Detector, Branch1Result
@@ -24,6 +29,10 @@ class KilatisOrchestrator:
         self.meta: Optional[meta_classifier.MetaDecider] = None
         self._decider_checked = False
         self.is_ready = False
+        self.load_seconds: dict[str, float] = {}    # how long each model took to load
+        self.self_test: dict = {"ok": False, "seconds": None, "error": None}
+        # One analysis at a time on the GPU, even when the server takes several requests at once.
+        self._inference_lock = threading.Lock()
 
     @property
     def active_decider(self) -> str:
@@ -35,9 +44,12 @@ class KilatisOrchestrator:
     def load_all_models(self):
         """Load Branch 1, Branch 2 and the meta-classifier into memory (called once at startup)."""
         print(f"[KILATIS AI] Initializing dual-branch models on device: {self.device}...")
-        self.branch1.load()
-        self.branch2.load()
-        self._load_decider()
+        for name, load in (("branch1", self.branch1.load), ("branch2", self.branch2.load),
+                           ("decider", self._load_decider)):
+            started = time.time()
+            load()
+            self.load_seconds[name] = round(time.time() - started, 2)
+        print(f"[KILATIS AI] [TIMING] model load seconds: {self.load_seconds}")
         self.is_ready = self.branch1.model is not None and self.branch2.model is not None
         if self.is_ready:
             print("[KILATIS AI] [OK] All KILATIS dual-branch models loaded successfully!")
@@ -63,8 +75,64 @@ class KilatisOrchestrator:
 
     # analysis
 
+    @property
+    def models_loaded(self) -> dict[str, bool]:
+        return {
+            "branch1": self.branch1.model is not None,
+            "branch2": self.branch2.model is not None,
+            "decider": self.meta is not None,
+        }
+
+    @property
+    def fully_ready(self) -> bool:
+        """True only when every model is loaded AND a test analysis has passed in this container."""
+        return all(self.models_loaded.values()) and bool(self.self_test["ok"])
+
+    def run_self_test(self) -> dict:
+        """Run one synthetic image through the full pipeline (both branches + meta-classifier).
+
+        This warms up the GPU (CUDA kernels, first-call set-up) so the first real upload is
+        not the slow one. Nothing is saved: the image is made in memory, written to a temp
+        file, analysed, and deleted. The result is only checked, never stored.
+        """
+        started = time.time()
+        error: Optional[str] = None
+        rng = np.random.default_rng(0)
+        h, w = 512, 768                       # colour, long edge >= 256 -> Gate 0 lets both branches run
+        yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+        base = np.stack([xx / w * 200, yy / h * 200, (xx + yy) / (w + h) * 200], axis=-1)
+        pixels = np.clip(base + rng.normal(0, 12, (h, w, 3)), 0, 255).astype(np.uint8)
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
+            Image.fromarray(pixels).save(tmp, format="PNG")
+            tmp_path = tmp.name
+        try:
+            result = self.evaluate_image_file(tmp_path, "kilatis-warmup-selftest.png")
+            if result.status != "success":
+                error = "analysis returned an error"
+            elif result.decider != "learned":
+                error = "meta-classifier not active"
+            elif "not-assessable" in (result.ai_axis.state, result.splice_axis.state):
+                error = "a detection branch did not run"
+        except Exception as err:                       # never let the warm-up crash the server
+            error = f"{type(err).__name__}"
+            print(f"[KILATIS AI ERROR] Self-test failed: {err}\n{traceback.format_exc()}")
+        finally:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+
+        seconds = round(time.time() - started, 2)
+        self.self_test = {"ok": error is None, "seconds": seconds, "error": error}
+        status = "[OK] passed" if error is None else f"[FAIL] {error}"
+        print(f"[KILATIS AI] [TIMING] self-test {status} in {seconds:.2f}s")
+        return self.self_test
+
     def evaluate_image_file(self, image_path: str, filename: str) -> ImageAnalysisResult:
         """Run the whole pipeline on one image file and return the API answer."""
+        with self._inference_lock:
+            return self._evaluate(image_path, filename)
+
+    def _evaluate(self, image_path: str, filename: str) -> ImageAnalysisResult:
         started = time.time()
         try:
             self._load_decider()

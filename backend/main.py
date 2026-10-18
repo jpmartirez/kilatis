@@ -1,20 +1,35 @@
 import pillow_heif
 pillow_heif.register_heif_opener()
 
+import time
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import init_db
-from app.routers import auth_router, users_router, detection_router, sessions_router
+from app.routers import auth_router, users_router, detection_router, sessions_router, system_router
 from app.ai.orchestrator import get_orchestrator
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize DB tables on startup if not existing
-    init_db()
-    # Pre-load KILATIS dual-branch AI models into GPU/CPU memory
-    orchestrator = get_orchestrator()
-    orchestrator.load_all_models()
+    started = time.time()
+
+    def timed_init_db() -> float:
+        t = time.time()
+        init_db()
+        return time.time() - t
+
+    # Initialize DB tables (a waking Neon database can take seconds) WHILE the models load
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        db_job = pool.submit(timed_init_db)
+        # Pre-load KILATIS dual-branch AI models into GPU/CPU memory
+        orchestrator = get_orchestrator()
+        orchestrator.load_all_models()
+        # Run one synthetic analysis so the first real upload does not pay the GPU warm-up cost
+        orchestrator.run_self_test()
+        db_seconds = db_job.result()
+    print(f"[KILATIS] [TIMING] startup: database {db_seconds:.2f}s (in parallel), "
+          f"total {time.time() - started:.2f}s, ready={orchestrator.fully_ready}")
     yield
 
 app = FastAPI(
@@ -37,6 +52,7 @@ app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(detection_router)
 app.include_router(sessions_router)
+app.include_router(system_router)
 
 @app.get("/")
 def read_root():
