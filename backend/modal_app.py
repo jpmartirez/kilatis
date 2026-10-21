@@ -59,7 +59,7 @@ image = (
 @app.function(
     image=image,
     gpu="L4",
-    scaledown_window=300,   # idle seconds before the GPU container shuts down (was 60)
+    scaledown_window=300,
     timeout=300,
 )
 # Let one container answer light requests (login, history, readiness) while an analysis runs,
@@ -70,7 +70,7 @@ def fastapi_app():
     import time
     started = time.time()
     from main import app as existing_fastapi_app
-    print(f"[KILATIS] [TIMING] python imports: {time.time() - started:.2f}s")
+    print(f"[Forenspect] [TIMING] python imports: {time.time() - started:.2f}s")
     return existing_fastapi_app
 
 # uv run modal deploy modal_app.py

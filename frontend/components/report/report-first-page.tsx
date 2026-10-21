@@ -152,7 +152,7 @@ export const ReportFirstPage: React.FC<ReportFirstPageProps> = ({
 									Tri-stream analysis completed
 								</span>
 								<span className="font-mono text-slate-700">
-									KILATIS-TRISTREAM V1.0
+									FORENSPECT-STREAM V1.0
 								</span>
 							</div>
 
@@ -164,7 +164,7 @@ export const ReportFirstPage: React.FC<ReportFirstPageProps> = ({
 									Report Generated
 								</span>
 								<span className="font-mono text-slate-700">
-									KILATIS-TRISTREAM V1.0
+									FORENSPECT-TRISTREAM V1.0
 								</span>
 							</div>
 

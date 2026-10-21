@@ -230,7 +230,7 @@ export default function MainPage() {
 					variant: "error",
 					title: "Connection Error",
 					message:
-						"The analysis could not start because the KILATIS server could not be reached. Please make sure the backend is running and try again.",
+						"The analysis could not start because the FORENSPECT server could not be reached. Please make sure the backend is running and try again.",
 				});
 			} else {
 				// The server refused the upload, e.g. "File 'x.png' was rejected: its content is not a real image ..."
@@ -318,7 +318,7 @@ export default function MainPage() {
 							{isSubmitting ? (
 								<>
 									<Loader2 className="w-4 h-4 animate-spin text-white" />
-									<span>ANALYZING EVIDENCE WITH KILATIS AI...</span>
+									<span>ANALYZING EVIDENCE WITH FORENSPECT AI...</span>
 								</>
 							) : (
 								<>

@@ -25,7 +25,7 @@ export const HistoryHeader: React.FC<HistoryHeaderProps> = ({ onBack }) => {
       <div className="bg-[#2a3c4d] text-white px-6 py-4 rounded-2xl flex items-center gap-3.5 shadow-sm">
         <Image
           src="/kilatisLogo.png"
-          alt="KILATIS Logo"
+          alt="FORENSPECT Logo"
           width={36}
           height={36}
           className="w-8 h-8 sm:w-9 sm:h-9 object-contain shrink-0 drop-shadow-xs"

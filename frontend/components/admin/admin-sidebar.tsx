@@ -29,14 +29,14 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           <div className="flex items-center gap-2.5">
             <Image
               src="/kilatisLogo.png"
-              alt="KILATIS"
+              alt="FORENSPECT"
               width={28}
               height={28}
               className="w-7 h-7 object-contain shrink-0"
               priority
             />
             <div>
-              <div className="text-xs font-black tracking-wider uppercase">KILATIS</div>
+              <div className="text-xs font-black tracking-wider uppercase">FORENSPECT</div>
               <div className="text-[10px] text-slate-400 font-mono tracking-tight">ADMIN CONSOLE</div>
             </div>
           </div>
@@ -94,7 +94,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
             <div className="flex items-center gap-3">
               <Image
                 src="/kilatisLogo.png"
-                alt="KILATIS"
+                alt="FORENSPECT"
                 width={36}
                 height={36}
                 className="w-9 h-9 object-contain shrink-0"
@@ -102,7 +102,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
               />
               <div>
                 <h1 className="text-base font-black tracking-tight uppercase text-white font-sans">
-                  KILATIS
+                  FORENSPECT
                 </h1>
                 <p className="text-[10px] font-mono tracking-widest text-slate-400 uppercase">
                   FORENSIC PORTAL
@@ -171,7 +171,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
             LOGOUT
           </button>
           <p className="text-[10px] text-center font-mono text-slate-500">
-            KILATIS v1.0.0
+            FORENSPECT v1.0.0
           </p>
         </div>
       </aside>

@@ -10,7 +10,7 @@ const plus_jakarta_sans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "KILATIS - Digital Image Authentication Analysis Tool",
+  title: "FORENSPECT - Digital Image Authentication Analysis Tool",
   description:
     "Advanced image forensic analysis powered by a tri-stream deep learning architecture for cybercrime investigators.",
 };

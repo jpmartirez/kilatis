@@ -97,7 +97,7 @@ export const CaseDetailsSection: React.FC<CaseDetailsSectionProps> = ({
               required
             />
             <p className="text-[10px] text-slate-400 mt-1 pl-2">
-              Auto-generated based on sequential KILATIS docket records (editable if needed).
+              Auto-generated based on sequential FORENSPECT docket records (editable if needed).
             </p>
           </div>
 

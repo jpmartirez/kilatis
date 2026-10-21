@@ -24,14 +24,14 @@ export const ResultsHeader: React.FC<ResultsHeaderProps> = ({
         <div className="flex items-center gap-2">
           <Image
             src="/kilatisLogo.png"
-            alt="KILATIS Logo"
+            alt="FORENSPECT Logo"
             width={24}
             height={24}
             className="w-5 h-5 sm:w-6 sm:h-6 object-contain shrink-0"
             priority
           />
           <span className="font-black text-sm tracking-widest text-slate-800 uppercase">
-            KILATIS
+            FORENSPECT
           </span>
         </div>
         <button
@@ -50,7 +50,7 @@ export const ResultsHeader: React.FC<ResultsHeaderProps> = ({
             <strong className="text-slate-400 font-medium">FILE:</strong> {filename}
           </span>
           <span className="hidden sm:inline text-slate-200">
-            <strong className="text-slate-400 font-medium">MODEL:</strong> KILATIS DUAL-BRANCH V1.0
+            <strong className="text-slate-400 font-medium">MODEL:</strong> FORENSPECT DUAL-BRANCH V1.0
           </span>
           <span className="text-slate-200">
             <strong className="text-slate-400 font-medium">UPLOADED BY:</strong> {investigatorName || "INVESTIGATOR"}

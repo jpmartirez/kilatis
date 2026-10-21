@@ -91,7 +91,7 @@ export const ReportLastPage: React.FC<ReportLastPageProps> = ({
 								className="mt-0.5 w-3.5 h-3.5 rounded border-slate-300 text-slate-900 focus:ring-0"
 							/>
 							<span className="text-slate-800 font-medium text-[11px] leading-snug">
-								I acknowledge that this report accurately reflects the KILATIS
+								I acknowledge that this report accurately reflects the FORENSPECT
 								system output at the time of analysis.{" "}
 								<span className="text-red-500 font-bold">*Required</span>
 							</span>

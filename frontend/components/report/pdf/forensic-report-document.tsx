@@ -400,7 +400,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 	return (
 		<Document
 			title={`Forensic_Analysis_Report_${caseNumber}`}
-			author="KILATIS Forensic System"
+			author="FORENSPECT Forensic System"
 		>
 			{/* PAGE 1: OVERVIEW & CASE INTAKE NOTES                     */}
 			<Page size="A4" style={styles.page}>
@@ -519,7 +519,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 										Tri-stream analysis completed
 									</Text>
 									<Text style={{ fontSize: 8, color: "#475569" }}>
-										KILATIS-TRISTREAM V1.0
+										FORENSPECT-TRISTREAM V1.0
 									</Text>
 								</View>
 								<View
@@ -541,7 +541,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 										Report Generated
 									</Text>
 									<Text style={{ fontSize: 8, color: "#475569" }}>
-										KILATIS-TRISTREAM V1.0
+										FORENSPECT-TRISTREAM V1.0
 									</Text>
 								</View>
 								<View style={[styles.grid2Col, { paddingTop: 3 }]}>
@@ -597,7 +597,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 
 				{/* Footer */}
 				<View style={styles.footer} fixed>
-					<Text>KILATIS FORENSICS REPORT</Text>
+					<Text>FORENSPECT FORENSICS REPORT</Text>
 					<Text
 						render={({ pageNumber, totalPages }) =>
 							`Page ${pageNumber} of ${totalPages}`
@@ -1329,7 +1329,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 
 						{/* Footer */}
 						<View style={styles.footer} fixed>
-							<Text>KILATIS FORENSICS REPORT</Text>
+							<Text>FORENSPECT FORENSICS REPORT</Text>
 							<Text
 								render={({ pageNumber, totalPages }) =>
 									`Page ${pageNumber} of ${totalPages}`
@@ -1406,7 +1406,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 								</Text>
 								<Text style={{ fontSize: 7.5, color: "#1e293b" }}>
 									( ) I acknowledge that this report accurately reflects the
-									KILATIS system output at the time of analysis.{" "}
+									FORENSPECT system output at the time of analysis.{" "}
 									<Text
 										style={{ color: "#ef4444", fontFamily: "Helvetica-Bold" }}
 									>
@@ -1470,7 +1470,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 
 				{/* Footer */}
 				<View style={styles.footer} fixed>
-					<Text>KILATIS FORENSICS REPORT</Text>
+					<Text>FORENSPECT FORENSICS REPORT</Text>
 					<Text
 						render={({ pageNumber, totalPages }) =>
 							`Page ${pageNumber} of ${totalPages}`

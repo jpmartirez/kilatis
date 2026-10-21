@@ -43,14 +43,14 @@ export const ReportToolbar: React.FC<ReportToolbarProps> = ({
           <div className="hidden sm:flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-slate-300 shadow-2xs">
             <Image
               src="/kilatisLogo.png"
-              alt="KILATIS Logo"
+              alt="FORENSPECT Logo"
               width={20}
               height={20}
               className="w-5 h-5 object-contain shrink-0"
               priority
             />
             <span className="font-black text-xs tracking-wider text-slate-900 uppercase">
-              KILATIS
+              FORENSPECT
             </span>
           </div>
 

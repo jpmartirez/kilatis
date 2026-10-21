@@ -17,7 +17,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
       <div className="flex items-center gap-3">
         <Image
           src="/kilatisLogo.png"
-          alt="KILATIS Logo"
+          alt="FORENSPECT Logo"
           width={36}
           height={36}
           className="w-8 h-8 sm:w-9 sm:h-9 object-contain shrink-0 drop-shadow-xs"

@@ -20,7 +20,7 @@ export const ReportPageSheet: React.FC<ReportPageSheetProps> = ({
 
       {/* Footer / Page Number */}
       <div className="pt-2 mt-auto flex items-center justify-between text-[9px] font-mono text-slate-400 border-t border-slate-200/60 print:text-slate-500">
-        <span>KILATIS FORENSICS REPORT</span>
+        <span>FORENSPECT FORENSICS REPORT</span>
         <span>
           Page {pageNumber} of {totalPages}
         </span>

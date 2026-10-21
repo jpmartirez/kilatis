@@ -18,11 +18,11 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
   return (
     <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 w-full">
-      {/* Left Title with Kilatis Logo */}
+      {/* Left Title with Forenspect Logo */}
       <div className="flex items-center gap-3">
         <Image
           src="/kilatisLogo.png"
-          alt="KILATIS Logo"
+          alt="FORENSPECT Logo"
           width={40}
           height={40}
           className="w-9 h-9 sm:w-10 sm:h-10 object-contain shrink-0 drop-shadow-xs"
