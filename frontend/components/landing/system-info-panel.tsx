@@ -32,7 +32,7 @@ export const SystemInfoPanel = () => {
 
 				{/* Overlay Result Badge */}
 				<div className="absolute bottom-3 left-3 bg-[#ab2b23] text-white font-bold text-[11px] sm:text-xs px-3.5 py-1.5 rounded-full shadow-lg border border-red-400/40 flex items-center gap-1.5 tracking-wider uppercase backdrop-blur-xs">
-					<span>RESULT: IMAGE IS TAMPERED</span>
+					<span>AI-GENERATED/DEEPFAKE | SPLICED</span>
 				</div>
 			</div>
 
