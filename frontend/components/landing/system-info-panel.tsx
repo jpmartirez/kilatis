@@ -39,7 +39,7 @@ export const SystemInfoPanel = () => {
 			{/* Bottom Description */}
 			<div className="space-y-2 lg:space-y-1.5 shrink-0 pt-1">
 				<p className="text-slate-200 text-sm lg:text-sm leading-relaxed lg:leading-snug font-normal">
-					FORENSPECT is an advanced image forensic analysis powered by a tri-stream
+					FORENSPECT is an advanced image forensic analysis powered by a dual-branch
 					deep learning architecture.
 				</p>
 				<p className="text-slate-300 text-xs sm:text-sm lg:text-sm leading-relaxed lg:leading-snug font-light opacity-95">
