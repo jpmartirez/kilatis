@@ -50,7 +50,6 @@ export interface ImageAnalysisResult {
     | "AI-generated / deepfake"
     | "AI-generated"
     | "Deepfake"
-    | "AI-generated + spliced"
     | "Manual review"
     | string;
   headline: string;
@@ -80,7 +79,6 @@ export interface BatchDetectionResponse {
   authentic_count: number;
   spliced_count: number;
   ai_generated_count: number;
-  ai_spliced_count: number;
   manual_review_count: number;
   results: ImageAnalysisResult[];
 }
@@ -421,7 +419,6 @@ export interface MonthlyVerdictBreakdown {
   authentic: number;
   spliced: number;
   ai_generated: number;
-  ai_spliced: number;
   manual_review: number;
 }
 
@@ -431,7 +428,6 @@ export interface MonthlyStatsSummary {
   authentic: number;
   spliced: number;
   ai_generated: number;
-  ai_spliced: number;
   manual_review: number;
 }
 

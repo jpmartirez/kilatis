@@ -47,10 +47,8 @@ export default function ResultsPage() {
   }, [data, selectedIndex]);
 
   const currentResult = currentItem?.result;
-  const isCurrentSpliced =
-    currentResult?.verdict === "Spliced" ||
-    currentResult?.verdict === "AI-generated + spliced";
-  // The backend only sends a mask for spliced verdicts or a noted pasted region (e.g. AI-generated + pasted area)
+  const isCurrentSpliced = currentResult?.verdict === "Spliced";
+  // The backend only sends a mask for Spliced verdicts
   const hasHeatmap = Boolean(currentResult?.mask_base64);
 
   // Reset tab & zoom upon image selection change
@@ -91,12 +89,8 @@ export default function ResultsPage() {
       items: selectedItems,
       summary: {
         totalItems: selectedItems.length,
-        splicedCount: selectedItems.filter(
-          (i) => i.result.verdict === "Spliced" || i.result.verdict === "AI-generated + spliced"
-        ).length,
-        aiCount: selectedItems.filter(
-          (i) => i.result.verdict === "AI-generated / deepfake" || i.result.verdict === "AI-generated + spliced"
-        ).length,
+        splicedCount: selectedItems.filter((i) => i.result.verdict === "Spliced").length,
+        aiCount: selectedItems.filter((i) => i.result.verdict === "AI-generated / deepfake").length,
         authenticCount: selectedItems.filter((i) => i.result.verdict === "Authentic").length,
         reviewCount: selectedItems.filter((i) => i.result.verdict === "Manual review").length,
       },
@@ -148,20 +142,12 @@ export default function ResultsPage() {
   // Verdict Presentation
   const getVerdictCard = (): VerdictCardData => {
     const v = currentResult.verdict?.toLowerCase() || "";
-    if (v.includes("splice") && !v.includes("ai")) {
+    if (v.includes("splice")) {
       return {
         bg: "bg-[#dc2626] text-white",
         subtitle: "TAMPER DETECTED",
         title: "SPLICED",
         conf: `${Math.round(pTradSplice * 100)}%`,
-      };
-    }
-    if (v.includes("ai") && v.includes("splice")) {
-      return {
-        bg: "bg-[#1e1b4b] text-white",
-        subtitle: "SYNTHETIC & TAMPERED",
-        title: "AI + SPLICED",
-        conf: `${Math.round(Math.max(pAi, pSplice) * 100)}%`,
       };
     }
     if (v.includes("ai") || v.includes("deepfake")) {

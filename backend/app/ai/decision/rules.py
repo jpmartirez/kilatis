@@ -96,9 +96,10 @@ def _assemble(ai: Axis, spl: Axis) -> tuple[str, str, list[str]]:
         return ("AI-generated / deepfake",
                 "Image reads as fully synthetic; a localized-manipulation signal is noted but out of the splice method's valid domain.",
                 detail)
-    return ("AI-generated + spliced",
-            "Both axes fired and AI confidence was not high enough to suppress — report both.",
-            detail)
+    # One verdict per image, as in the meta-classifier: the splice wins and the AI signal is noted.
+    detail.append(f"secondary note: AI signal also present (AI score {ai.score:.2f}); "
+                  f"the pasted region may itself be AI-generated")
+    return ("Spliced", "Real capture with a foreign region grafted in (see mask).", detail)
 
 
 def evaluate(quality: Quality, p_ai: float, det_score: float, has_mask: bool = False) -> Report:

@@ -164,7 +164,6 @@ export const EvidenceViewport: React.FC<EvidenceViewportProps> = ({
 						const isSelected = idx === selectedIndex;
 						const itemSplice =
 							item.result.verdict === "Spliced" ||
-							item.result.verdict === "AI-generated + spliced" ||
 							Boolean(item.result.mask_base64);
 						return (
 							<button

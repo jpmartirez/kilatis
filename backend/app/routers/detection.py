@@ -142,7 +142,6 @@ async def analyze_images(
     authentic_count = sum(1 for r in results if r.verdict == "Authentic")
     spliced_count = sum(1 for r in results if r.verdict == "Spliced")
     ai_generated_count = sum(1 for r in results if r.verdict == "AI-generated / deepfake")
-    ai_spliced_count = sum(1 for r in results if r.verdict == "AI-generated + spliced")
     manual_review_count = sum(1 for r in results if r.verdict == "Manual review")
 
     return BatchDetectionResponse(
@@ -150,7 +149,6 @@ async def analyze_images(
         authentic_count=authentic_count,
         spliced_count=spliced_count,
         ai_generated_count=ai_generated_count,
-        ai_spliced_count=ai_spliced_count,
         manual_review_count=manual_review_count,
         results=results,
     )

@@ -202,7 +202,6 @@ export default function MainPage() {
 					authentic: res.authentic_count,
 					spliced: res.spliced_count,
 					ai: res.ai_generated_count,
-					aiSpliced: res.ai_spliced_count,
 					manual: res.manual_review_count,
 				},
 			};

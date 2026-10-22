@@ -36,7 +36,6 @@ export const VerdictStatsChart: React.FC<VerdictStatsChartProps> = ({
     authentic: 0,
     spliced: 0,
     ai_generated: 0,
-    ai_spliced: 0,
     manual_review: 0,
   };
 
@@ -44,7 +43,6 @@ export const VerdictStatsChart: React.FC<VerdictStatsChartProps> = ({
     summary.authentic +
     summary.spliced +
     summary.ai_generated +
-    summary.ai_spliced +
     summary.manual_review;
 
   const calculatePct = (count: number) => {
@@ -76,14 +74,6 @@ export const VerdictStatsChart: React.FC<VerdictStatsChartProps> = ({
       color: "bg-rose-700",
       trackColor: "bg-rose-100",
       description: "Diffusion or GAN synthetic generation patterns",
-    },
-    {
-      label: "AI-Generated + Spliced",
-      count: summary.ai_spliced,
-      pct: calculatePct(summary.ai_spliced),
-      color: "bg-indigo-700",
-      trackColor: "bg-indigo-100",
-      description: "Hybrid manipulation: synthetic subject with splicing",
     },
     {
       label: "Manual Review Required",
@@ -152,7 +142,7 @@ export const VerdictStatsChart: React.FC<VerdictStatsChartProps> = ({
       {/* ============================================================== */}
       {/* SUMMARY STAT CARDS                                             */}
       {/* ============================================================== */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         <Card className="border-slate-200">
           <CardContent className="p-4 sm:p-5 space-y-1">
             <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
@@ -205,20 +195,6 @@ export const VerdictStatsChart: React.FC<VerdictStatsChartProps> = ({
             </div>
             <div className="text-[10px] text-rose-700 font-mono">
               {calculatePct(summary.ai_generated)}% of total verdicts
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-200">
-          <CardContent className="p-4 sm:p-5 space-y-1">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-indigo-800">
-              AI + Spliced
-            </div>
-            <div className="text-2xl sm:text-3xl font-black text-indigo-900 font-mono">
-              {summary.ai_spliced}
-            </div>
-            <div className="text-[10px] text-indigo-700 font-mono">
-              {calculatePct(summary.ai_spliced)}% of total verdicts
             </div>
           </CardContent>
         </Card>
@@ -320,7 +296,6 @@ export const VerdictStatsChart: React.FC<VerdictStatsChartProps> = ({
                     <th className="py-2.5 px-3 text-right text-emerald-800">Authentic</th>
                     <th className="py-2.5 px-3 text-right text-amber-800">Spliced</th>
                     <th className="py-2.5 px-3 text-right text-rose-800">AI / Deepfake</th>
-                    <th className="py-2.5 px-3 text-right text-indigo-800">AI + Spliced</th>
                     <th className="py-2.5 px-3 text-right text-slate-700">Review</th>
                   </tr>
                 </thead>
@@ -342,7 +317,6 @@ export const VerdictStatsChart: React.FC<VerdictStatsChartProps> = ({
                       <td className="py-2.5 px-3 text-right text-emerald-700">{row.authentic}</td>
                       <td className="py-2.5 px-3 text-right text-amber-700">{row.spliced}</td>
                       <td className="py-2.5 px-3 text-right text-rose-700">{row.ai_generated}</td>
-                      <td className="py-2.5 px-3 text-right text-indigo-700">{row.ai_spliced}</td>
                       <td className="py-2.5 px-3 text-right text-slate-600">{row.manual_review}</td>
                     </tr>
                   ))}

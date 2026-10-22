@@ -27,7 +27,6 @@ export interface StoredResultsPayload {
     authentic: number;
     spliced: number;
     ai: number;
-    aiSpliced: number;
     manual: number;
   };
 }

@@ -35,7 +35,7 @@ def generate_heatmap_base64(image: Image.Image, mask: np.ndarray) -> str:
 
 def should_show_heatmap(verdict: str) -> bool:
     """Show the mask only when the verdict reports splicing."""
-    return verdict in ("Spliced", "AI-generated + spliced")
+    return verdict == "Spliced"
 
 
 def axis_detail(ax: rules.Axis) -> AxisDetail:

@@ -21,8 +21,7 @@ router = APIRouter(prefix="/api/sessions", tags=["Case Sessions"])
 def categorize_verdict(verdict: str) -> str:
     """Categorize forensic verdict string into standard summary buckets."""
     v = (verdict or "").strip().upper()
-    if "AI" in v and "SPLIC" in v:
-        return "ai_spliced"
+    # Older "AI-generated + spliced" records count as Spliced (one verdict per image)
     if "SPLIC" in v:
         return "spliced"
     if "AI" in v or "DEEPFAKE" in v or "SYNTHETIC" in v:
@@ -60,7 +59,6 @@ def get_monthly_verdict_stats(
         "authentic": 0,
         "spliced": 0,
         "ai_generated": 0,
-        "ai_spliced": 0,
         "manual_review": 0,
     }
 
@@ -77,7 +75,6 @@ def get_monthly_verdict_stats(
                 "authentic": 0,
                 "spliced": 0,
                 "ai_generated": 0,
-                "ai_spliced": 0,
                 "manual_review": 0,
             }
 
@@ -105,7 +102,6 @@ def get_monthly_verdict_stats(
             "authentic": target["authentic"],
             "spliced": target["spliced"],
             "ai_generated": target["ai_generated"],
-            "ai_spliced": target["ai_spliced"],
             "manual_review": target["manual_review"],
         }
     else:
@@ -115,7 +111,6 @@ def get_monthly_verdict_stats(
             "authentic": sum(m["authentic"] for m in monthly_breakdown),
             "spliced": sum(m["spliced"] for m in monthly_breakdown),
             "ai_generated": sum(m["ai_generated"] for m in monthly_breakdown),
-            "ai_spliced": sum(m["ai_spliced"] for m in monthly_breakdown),
             "manual_review": sum(m["manual_review"] for m in monthly_breakdown),
         }
 

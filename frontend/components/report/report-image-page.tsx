@@ -18,7 +18,7 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
   const verdict = result.verdict || "Manual review";
   const vLower = verdict.toLowerCase();
   const isSpliced =
-    vLower.includes("splice") || verdict === "AI-generated + spliced";
+    vLower.includes("splice");
   const isDeepfake = vLower.includes("deepfake");
   const isAi = vLower.includes("ai") || isDeepfake;
   const isAuthentic = vLower.includes("authentic");

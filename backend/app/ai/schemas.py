@@ -59,6 +59,5 @@ class BatchDetectionResponse(BaseModel):
     authentic_count: int
     spliced_count: int
     ai_generated_count: int
-    ai_spliced_count: int
     manual_review_count: int
     results: List[ImageAnalysisResult]
