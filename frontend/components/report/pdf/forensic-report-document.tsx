@@ -410,7 +410,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 					<View>
 						<Text style={styles.headerTitle}>FORENSIC ANALYSIS REPORT</Text>
 						<Text style={styles.headerSubtitle}>
-							Automated tri-stream tamper detection · Case {caseNumber} ·
+							Automated dual-branch tamper detection · Case {caseNumber} ·
 							Prepared for PNP Anti-Cybercrime Group
 						</Text>
 					</View>
@@ -478,14 +478,14 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 						</View>
 					</View>
 
-					{/* CONFIDENCE, LIMITATIONS & CHAIN OF CUSTODY */}
+					{/* CONFIDENCE, LIMITATIONS & ANALYSIS TIMELINE */}
 					<View style={styles.sectionCard}>
 						<View style={styles.sectionHeaderRow}>
 							<View style={styles.circleIcon}>
 								<Text style={styles.circleIconText}>2</Text>
 							</View>
 							<Text style={styles.sectionTitle}>
-								CONFIDENCE, LIMITATIONS & CHAIN OF CUSTODY
+								CONFIDENCE, LIMITATIONS & ANALYSIS TIMELINE
 							</Text>
 						</View>
 						<Text style={styles.sectionSubtitle}>
@@ -517,10 +517,10 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 											color: "#0f172a",
 										}}
 									>
-										Tri-stream analysis completed
+										Dual-branch analysis completed
 									</Text>
 									<Text style={{ fontSize: 8, color: "#475569" }}>
-										FORENSPECT-TRISTREAM V1.0
+										FORENSPECT-DUALBRANCH V1.0
 									</Text>
 								</View>
 								<View
@@ -542,7 +542,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 										Report Generated
 									</Text>
 									<Text style={{ fontSize: 8, color: "#475569" }}>
-										FORENSPECT-TRISTREAM V1.0
+										FORENSPECT-DUALBRANCH V1.0
 									</Text>
 								</View>
 								<View style={[styles.grid2Col, { paddingTop: 3 }]}>
@@ -1421,7 +1421,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 								</View>
 
 								<View style={styles.col}>
-									<Text style={styles.labelSmall}>BADGE NUMBER</Text>
+									<Text style={styles.labelSmall}>POSITION / DESIGNATION</Text>
 									<View style={styles.blankInputBox} />
 								</View>
 							</View>

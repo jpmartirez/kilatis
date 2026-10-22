@@ -46,7 +46,7 @@ export const ReportFirstPage: React.FC<ReportFirstPageProps> = ({
 					FORENSIC ANALYSIS REPORT
 				</h1>
 				<p className="text-[10px] font-semibold text-slate-600 tracking-tight mt-0.5">
-					Automated tri-stream tamper detection · Case {caseNumber} · Prepared
+					Automated dual-branch tamper detection · Case {caseNumber} · Prepared
 					for PNP Anti-Cybercrime Group
 				</p>
 			</div>
@@ -116,14 +116,14 @@ export const ReportFirstPage: React.FC<ReportFirstPageProps> = ({
 				</div>
 			</div>
 
-			{/* ② CONFIDENCE, LIMITATIONS & CHAIN OF CUSTODY */}
+			{/* ② CONFIDENCE, LIMITATIONS & ANALYSIS TIMELINE */}
 			<div className="bg-[#eef4f9] rounded-2xl p-4 shadow-2xs border border-slate-200/80 shrink-0">
 				<div className="flex items-center gap-2 mb-0.5">
 					<div className="w-4 h-4 rounded-full border border-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-900 font-sans">
 						2
 					</div>
 					<h3 className="text-xs font-black tracking-wide text-slate-950 uppercase font-sans">
-						CONFIDENCE, LIMITATIONS & CHAIN OF CUSTODY
+						CONFIDENCE, LIMITATIONS & ANALYSIS TIMELINE
 					</h3>
 				</div>
 				<p className="text-[10px] text-slate-500 font-medium mb-2 pl-6">
@@ -149,10 +149,10 @@ export const ReportFirstPage: React.FC<ReportFirstPageProps> = ({
 									{timestampShort}
 								</span>
 								<span className="text-slate-900 font-medium">
-									Tri-stream analysis completed
+									Dual-branch analysis completed
 								</span>
 								<span className="font-mono text-slate-700">
-									FORENSPECT-STREAM V1.0
+									FORENSPECT-DUALBRANCH V1.0
 								</span>
 							</div>
 
@@ -164,7 +164,7 @@ export const ReportFirstPage: React.FC<ReportFirstPageProps> = ({
 									Report Generated
 								</span>
 								<span className="font-mono text-slate-700">
-									FORENSPECT-TRISTREAM V1.0
+									FORENSPECT-DUALBRANCH V1.0
 								</span>
 							</div>
 

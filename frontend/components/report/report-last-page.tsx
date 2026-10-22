@@ -23,7 +23,7 @@ export const ReportLastPage: React.FC<ReportLastPageProps> = ({
 }) => {
 	const [cert1, setCert1] = useState(false);
 	const [cert2, setCert2] = useState(false);
-	const [badgeNumber, setBadgeNumber] = useState("");
+	const [position, setPosition] = useState("");
 	const [signature, setSignature] = useState("");
 
 	return (
@@ -114,12 +114,12 @@ export const ReportLastPage: React.FC<ReportLastPageProps> = ({
 
 						<div>
 							<span className="text-[9px] font-bold font-sans text-slate-600 uppercase tracking-wider block mb-1">
-								BADGE NUMBER
+								POSITION / DESIGNATION
 							</span>
 							<input
 								type="text"
-								value={badgeNumber}
-								onChange={(e) => setBadgeNumber(e.target.value)}
+								value={position}
+								onChange={(e) => setPosition(e.target.value)}
 								className="w-full bg-[#f1f5f9] rounded-lg px-3 py-2 text-xs text-slate-900 font-medium outline-hidden border border-transparent focus:border-slate-300 min-h-7.5"
 							/>
 						</div>
