@@ -61,6 +61,28 @@ def mask_evidence(mask: Optional[np.ndarray], face_boxes: list[Box],
     return area, peak, overlap
 
 
+def tamper_region(mask: Optional[np.ndarray]) -> tuple[Optional[float], Optional[str]]:
+    """Where the tampered area is and how big it is, for the report: (area share, location).
+
+    The location is the 3x3 grid cell holding the centre of the tampered pixels, or
+    "spread across the image" when they cover most of the width and height.
+    Returns (None, None) when the mask marks nothing.
+    """
+    if mask is None:
+        return None, None
+    hot = mask > 0.5
+    if not hot.any():
+        return None, None
+    mh, mw = hot.shape
+    ys, xs = np.nonzero(hot)
+    if (ys.max() - ys.min() + 1) > mh * 2 / 3 and (xs.max() - xs.min() + 1) > mw * 2 / 3:
+        return float(hot.mean()), "spread across the image"
+    row = ("upper", "middle", "lower")[min(2, int(ys.mean() * 3 / mh))]
+    col = ("left", "center", "right")[min(2, int(xs.mean() * 3 / mw))]
+    location = "center" if (row, col) == ("middle", "center") else f"{row}-{col}"
+    return float(hot.mean()), location
+
+
 def build_evidence(quality: Quality, b1: Branch1Result, b2: Branch2Result,
                    upright_mask: Optional[np.ndarray], img_size: tuple[int, int]) -> dict:
     """All values the decision layer reads, with the names meta_classifier.feature_vector expects."""

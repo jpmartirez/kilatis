@@ -3,7 +3,7 @@
 
 import React from "react";
 import { StoredResultItem } from "@/types/results";
-import { getDecisionExplanation } from "@/lib/report-explain";
+import { getDecisionExplanation, getSpliceFindings } from "@/lib/report-explain";
 
 interface ReportImagePageProps {
   item: StoredResultItem;
@@ -24,6 +24,7 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
   const isAuthentic = vLower.includes("authentic");
   const hasHeatmap = Boolean(result.mask_base64);
   const explanation = getDecisionExplanation(result);
+  const splice = getSpliceFindings(result);
 
   // Streams percentages
   const spatialPct = Math.round((result.streams?.spatial_score ?? result.scores?.p_ai ?? 0.82) * 100);
@@ -115,11 +116,11 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
             {isSpliced ? (
               <>
                 <p>
-                  All three detection methods agree that this image has been altered. The evidence is consistent with{" "}
+                  {splice.lead}{" "}
                   <strong>image splicing</strong> — content copied from a separate source photograph and inserted into this one.
                 </p>
                 <p className="text-slate-600 text-[9.5px]">
-                  The system located the affected area in the upper-right portion of the frame, covering roughly 8% of the image. This finding is driven primarily by visual-structure and sensor-noise evidence; frequency-domain evidence was comparatively weak.
+                  {splice.detail}
                 </p>
               </>
             ) : isAi ? (
@@ -186,18 +187,18 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
             </span>
           </div>
 
-          {/* GradCAM / JET Heatmap (when a mask was returned) */}
+          {/* Tampering heatmap: TruFor localization mask (when a mask was returned) */}
           {result.mask_base64 && (
             <div className="bg-[#18181b] rounded-xl p-2.5 flex flex-col items-center justify-center shadow-xs">
               <div className="relative h-24 w-full flex items-center justify-center overflow-hidden rounded-lg">
                 <img
                   src={result.mask_base64}
-                  alt="GradCAM Heatmap"
+                  alt="Tampering Heatmap"
                   className="max-h-24 max-w-full object-contain rounded-lg"
                 />
               </div>
               <span className="text-[8.5px] font-black tracking-widest text-slate-300 uppercase mt-1.5">
-                GRADCAM HEATMAP
+                TAMPERING HEATMAP
               </span>
             </div>
           )}
@@ -208,7 +209,7 @@ export const ReportImagePage: React.FC<ReportImagePageProps> = ({
           <span className="text-slate-600">Localized evidence: </span>
           <strong>
             {isSpliced
-              ? "upper-right quadrant, ~8% of frame — consistent with a duplicated region"
+              ? splice.caption
               : isAi
               ? "global frequency and generative boundary inconsistency"
               : "uniform sensor noise across frame — no localized anomaly detected"}

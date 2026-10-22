@@ -62,6 +62,9 @@ export interface ImageAnalysisResult {
   detail: string[];
   has_tamper_mask: boolean;
   mask_base64?: string | null;
+  // Measured from the tamper mask; only sent with a heatmap (absent on older results)
+  tamper_area?: number | null;
+  tamper_location?: string | null;
   status: "success" | "error" | string;
   error?: string | null;
   // Learned decision layer (meta-classifier); absent on results saved before it existed

@@ -42,6 +42,8 @@ class ImageAnalysisResult(BaseModel):
     detail: List[str]
     has_tamper_mask: bool
     mask_base64: Optional[str] = None
+    tamper_area: Optional[float] = None       # share of the image marked tampered (0-1), only with a heatmap
+    tamper_location: Optional[str] = None     # e.g. "lower-left", "center", only with a heatmap
     status: str = "success"
     error: Optional[str] = None
     # Learned decision layer (meta-classifier); optional so older clients keep working

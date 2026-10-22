@@ -15,6 +15,7 @@ import {
 	formatIncidentDate,
 	formatIncidentTime,
 	getDecisionExplanation,
+	getSpliceFindings,
 } from "@/lib/report-explain";
 
 // Styles for @react-pdf/renderer perfectly proportioned for full-page A4
@@ -667,6 +668,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 				}
 
 				const explanation = getDecisionExplanation(result);
+				const splice = getSpliceFindings(result);
 				const maxPoints = Math.max(
 					1,
 					...explanation.evidence.map((e) => e.points),
@@ -737,8 +739,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 												<Text
 													style={[styles.paragraphText, { marginBottom: 4 }]}
 												>
-													All three detection methods agree that this image has
-													been altered. The evidence is consistent with{" "}
+													{splice.lead}{" "}
 													<Text style={{ fontFamily: "Helvetica-Bold" }}>
 														image splicing
 													</Text>{" "}
@@ -752,11 +753,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 														lineHeight: 1.3,
 													}}
 												>
-													The system located the affected area in the
-													upper-right portion of the frame, covering roughly 8%
-													of the image. This finding is driven primarily by
-													visual-structure and sensor-noise evidence;
-													frequency-domain evidence was comparatively weak.
+													{splice.detail}
 												</Text>
 											</>
 										) : isAi ? (
@@ -848,14 +845,14 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 										<Text style={styles.viewportLabel}>QUESTIONED IMAGE</Text>
 									</View>
 
-									{/* GradCAM Heatmap (when a mask was returned) */}
+									{/* Tampering heatmap: TruFor localization mask (when a mask was returned) */}
 									{result.mask_base64 && (
 										<View style={[styles.viewportCard, { width: "48.5%" }]}>
 											<PdfImage
 												src={result.mask_base64}
 												style={styles.imgViewportImage}
 											/>
-											<Text style={styles.viewportLabel}>HEATMAP</Text>
+											<Text style={styles.viewportLabel}>TAMPERING HEATMAP</Text>
 										</View>
 									)}
 								</View>
@@ -867,7 +864,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 									<Text style={{ color: "#64748b" }}>Localized evidence: </Text>
 									<Text style={{ fontFamily: "Helvetica-Bold" }}>
 										{isSpliced
-											? "upper-right quadrant, ~8% of frame — consistent with a duplicated region"
+											? splice.caption
 											: isAi
 												? "global frequency and generative boundary inconsistency"
 												: "uniform sensor noise across frame — no localized anomaly detected"}

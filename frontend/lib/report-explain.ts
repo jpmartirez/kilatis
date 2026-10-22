@@ -82,6 +82,51 @@ function noteText(line: string): string | null {
 	return text;
 }
 
+export interface SpliceFindings {
+	/** Opening sentence, followed in the report by the bold phrase "image splicing". */
+	lead: string;
+	detail: string;
+	/** Short "Localized evidence" caption under the heatmap. */
+	caption: string;
+}
+
+/** Plain-language splice findings built from this image's own scores and tamper region. */
+export function getSpliceFindings(result: ImageAnalysisResult): SpliceFindings {
+	const lead = `The splice detection branch flagged this image as altered (splice score ${pct(result.scores?.p_splice ?? 0)}). The evidence is consistent with`;
+
+	const loc = result.tamper_location;
+	const area = result.tamper_area;
+	let where: string | null = null;
+	let size: string | null = null;
+	if (loc && area != null) {
+		where =
+			loc === "spread across the image" ? loc : loc === "center" ? "center of the frame" : `${loc} part of the frame`;
+		size = area < 0.01 ? "less than 1%" : `about ${pct(area)}`;
+	}
+
+	const sentences = [
+		where && size
+			? `The suspected area is in the ${where}, covering ${size} of the image.`
+			: "The suspected area is highlighted on the tampering heatmap.",
+	];
+	const ai = result.ai_axis;
+	if (ai && ai.state !== "not-assessable") {
+		const pAi = result.scores?.p_ai ?? 0;
+		sentences.push(
+			pAi >= ai.threshold
+				? `The AI-detection branch also gave a raised score (${pct(pAi)}), so the inserted content may itself be AI-generated.`
+				: `The AI-detection branch found no strong sign of AI generation (score ${pct(pAi)}).`,
+		);
+	}
+
+	const caption =
+		where && size
+			? `${where.charAt(0).toUpperCase()}${where.slice(1)}, ${size} of the image`
+			: "suspected spliced area highlighted on the heatmap";
+
+	return { lead, detail: sentences.join(" "), caption };
+}
+
 /** Turns the backend's meta-classifier fields into report-ready, plain-language explanation. */
 export function getDecisionExplanation(result: ImageAnalysisResult): DecisionExplanation {
 	const confidenceKey = (result.confidence?.toLowerCase() || null) as ConfidenceKey | null;

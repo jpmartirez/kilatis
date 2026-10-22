@@ -51,7 +51,8 @@ def axis_detail(ax: rules.Axis) -> AxisDetail:
 
 def build_result(filename: str, decision: FinalDecision, rules_report: rules.Report, rules_verdict: str,
                  b1: Branch1Result, b2: Branch2Result, mask_base64: str | None,
-                 decider: str, conflicts: list[str]) -> ImageAnalysisResult:
+                 decider: str, conflicts: list[str],
+                 region: tuple[float | None, str | None] = (None, None)) -> ImageAnalysisResult:
     return ImageAnalysisResult(
         filename=filename,
         verdict=decision.verdict,
@@ -74,6 +75,8 @@ def build_result(filename: str, decision: FinalDecision, rules_report: rules.Rep
         detail=decision.detail,
         has_tamper_mask=b2.has_mask,
         mask_base64=mask_base64,
+        tamper_area=round(region[0], 4) if region[0] is not None else None,
+        tamper_location=region[1],
         status="success",
         decider=decider,
         confidence=decision.confidence,
