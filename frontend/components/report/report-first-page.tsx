@@ -145,37 +145,37 @@ export const ReportFirstPage: React.FC<ReportFirstPageProps> = ({
 
 						<div className="space-y-1 text-[9px] font-sans">
 							<div className="flex items-center justify-between border-b border-slate-100 pb-0.5">
-								<span className="font-mono text-slate-700">
+								<span className="flex-1 text-left font-mono text-slate-700">
 									{timestampShort}
 								</span>
-								<span className="text-slate-900 font-medium">
+								<span className="flex-1 text-center text-slate-900 font-medium">
 									Dual-branch analysis completed
 								</span>
-								<span className="font-mono text-slate-700">
+								<span className="flex-1 text-right font-mono text-slate-700">
 									FORENSPECT-DUALBRANCH V1.0
 								</span>
 							</div>
 
 							<div className="flex items-center justify-between border-b border-slate-100 pb-0.5">
-								<span className="font-mono text-slate-700">
+								<span className="flex-1 text-left font-mono text-slate-700">
 									{timestampShort}
 								</span>
-								<span className="text-slate-900 font-medium">
+								<span className="flex-1 text-center text-slate-900 font-medium">
 									Report Generated
 								</span>
-								<span className="font-mono text-slate-700">
+								<span className="flex-1 text-right font-mono text-slate-700">
 									FORENSPECT-DUALBRANCH V1.0
 								</span>
 							</div>
 
 							<div className="flex items-center justify-between">
-								<span className="font-mono text-slate-700">
+								<span className="flex-1 text-left font-mono text-slate-700">
 									{timestampShort}
 								</span>
-								<span className="text-slate-900 font-medium">
+								<span className="flex-1 text-center text-slate-900 font-medium">
 									PENDING EXAMINER REVIEW
 								</span>
-								<span className="font-mono text-slate-400">
+								<span className="flex-1 text-right font-mono text-slate-400">
 									---------------------
 								</span>
 							</div>

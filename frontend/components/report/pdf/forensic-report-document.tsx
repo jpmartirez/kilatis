@@ -507,11 +507,13 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 										{ borderBottom: "0.5px solid #f1f5f9", paddingBottom: 3 },
 									]}
 								>
-									<Text style={{ fontSize: 8, color: "#475569" }}>
+									<Text style={{ flex: 1, textAlign: "left", fontSize: 8, color: "#475569" }}>
 										{timestampShort}
 									</Text>
 									<Text
 										style={{
+											flex: 1,
+											textAlign: "center",
 											fontSize: 8,
 											fontFamily: "Helvetica-Bold",
 											color: "#0f172a",
@@ -519,7 +521,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 									>
 										Dual-branch analysis completed
 									</Text>
-									<Text style={{ fontSize: 8, color: "#475569" }}>
+									<Text style={{ flex: 1, textAlign: "right", fontSize: 8, color: "#475569" }}>
 										FORENSPECT-DUALBRANCH V1.0
 									</Text>
 								</View>
@@ -529,11 +531,13 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 										{ borderBottom: "0.5px solid #f1f5f9", paddingVertical: 3 },
 									]}
 								>
-									<Text style={{ fontSize: 8, color: "#475569" }}>
+									<Text style={{ flex: 1, textAlign: "left", fontSize: 8, color: "#475569" }}>
 										{timestampShort}
 									</Text>
 									<Text
 										style={{
+											flex: 1,
+											textAlign: "center",
 											fontSize: 8,
 											fontFamily: "Helvetica-Bold",
 											color: "#0f172a",
@@ -541,16 +545,18 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 									>
 										Report Generated
 									</Text>
-									<Text style={{ fontSize: 8, color: "#475569" }}>
+									<Text style={{ flex: 1, textAlign: "right", fontSize: 8, color: "#475569" }}>
 										FORENSPECT-DUALBRANCH V1.0
 									</Text>
 								</View>
 								<View style={[styles.grid2Col, { paddingTop: 3 }]}>
-									<Text style={{ fontSize: 8, color: "#475569" }}>
+									<Text style={{ flex: 1, textAlign: "left", fontSize: 8, color: "#475569" }}>
 										{timestampShort}
 									</Text>
 									<Text
 										style={{
+											flex: 1,
+											textAlign: "center",
 											fontSize: 8,
 											fontFamily: "Helvetica-Bold",
 											color: "#0f172a",
@@ -558,7 +564,7 @@ export const ForensicReportDocument: React.FC<ForensicReportDocumentProps> = ({
 									>
 										PENDING EXAMINER REVIEW
 									</Text>
-									<Text style={{ fontSize: 8, color: "#94a3b8" }}>
+									<Text style={{ flex: 1, textAlign: "right", fontSize: 8, color: "#94a3b8" }}>
 										---------------------
 									</Text>
 								</View>
