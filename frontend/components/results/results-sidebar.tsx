@@ -6,6 +6,7 @@ import { FileText } from "lucide-react";
 import { VerdictCard } from "./verdict-card";
 import { DecisionBasisCard } from "./decision-basis-card";
 import { ClassProbabilityCard } from "./class-probability-card";
+import { PerStreamEvidence } from "./per-stream-evidence";
 import { ImageAnalysisResult } from "@/lib/api";
 import { ProbBarItem, StoredResultItem, VerdictCardData } from "@/types/results";
 
@@ -18,6 +19,10 @@ interface ResultsSidebarProps {
   caseNotes?: string;
   currentItem?: StoredResultItem;
   currentResult: ImageAnalysisResult;
+  spatialPct?: number;
+  noisePct?: number;
+  frequencyPct?: number;
+  isSpliced?: boolean;
   onGenerateReport?: () => void;
 }
 
@@ -25,6 +30,10 @@ export const ResultsSidebar: React.FC<ResultsSidebarProps> = ({
   verdictData,
   probBars,
   currentResult,
+  spatialPct = 0,
+  noisePct = 0,
+  frequencyPct = 0,
+  isSpliced = false,
   onGenerateReport,
 }) => {
   const router = useRouter();
@@ -38,7 +47,7 @@ export const ResultsSidebar: React.FC<ResultsSidebarProps> = ({
   };
 
   return (
-    <aside className="lg:col-span-4 space-y-3.5 sticky top-4">
+    <aside className="space-y-3.5">
       {/* 1. Verdict Card */}
       <VerdictCard verdictData={verdictData} />
 
@@ -48,7 +57,16 @@ export const ResultsSidebar: React.FC<ResultsSidebarProps> = ({
       {/* 3. Decision Basis Card */}
       <DecisionBasisCard result={currentResult} />
 
-      {/* 4. Generate Report Button */}
+      {/* 4. Findings & Per-Stream Evidence (Portrait Format before Generate Report) */}
+      <PerStreamEvidence
+        result={currentResult}
+        spatialPct={spatialPct}
+        noisePct={noisePct}
+        frequencyPct={frequencyPct}
+        isSpliced={isSpliced}
+      />
+
+      {/* 5. Generate Report Button */}
       <div className="pt-1">
         <button
           type="button"

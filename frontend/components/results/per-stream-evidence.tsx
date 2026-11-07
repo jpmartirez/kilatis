@@ -8,7 +8,7 @@ interface PerStreamEvidenceProps {
   spatialPct: number;
   noisePct: number;
   frequencyPct: number;
-  isSpliced: boolean;
+  isSpliced?: boolean;
 }
 
 export const PerStreamEvidence: React.FC<PerStreamEvidenceProps> = ({
@@ -16,66 +16,82 @@ export const PerStreamEvidence: React.FC<PerStreamEvidenceProps> = ({
   spatialPct,
   noisePct,
   frequencyPct,
-  isSpliced,
 }) => {
   return (
-    <div className="bg-[#e4ebf3] rounded-3xl p-5 border border-slate-300/80 shadow-xs space-y-4 text-xs">
-      <div className="space-y-1">
-        <p className="text-slate-800 font-medium leading-relaxed">
-          <strong className="font-bold text-slate-900">Findings: </strong>
+    <div className="bg-[#e4ebf3] rounded-3xl p-4 sm:p-5 border border-slate-300/80 shadow-xs space-y-3 text-center">
+      <span className="font-bold text-[11px] uppercase tracking-wider text-slate-500 block">
+        FINDINGS &amp; PER-STREAM EVIDENCE
+      </span>
+
+      {/* Findings Box */}
+      <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs space-y-2.5 text-left">
+        <div className="border-b border-slate-100 pb-2">
+          <span className="font-bold text-xs uppercase tracking-wider text-slate-700">
+            Forensic Findings
+          </span>
+        </div>
+
+        <p className="text-slate-800 font-medium leading-relaxed text-xs">
           {result.headline || "Dual-branch forensic analysis completed across spatial and frequency domains."}
         </p>
+
         {result.detail && result.detail.length > 0 && (
-          <p className="text-slate-500 text-[11px]">
-            {result.detail.join(" • ")}
-          </p>
+          <div className="pt-2 border-t border-slate-100 space-y-1 text-[11px] text-slate-500">
+            {result.detail.map((d, idx) => (
+              <div key={idx} className="flex items-start gap-1.5">
+                <span className="text-blue-500 font-bold">•</span>
+                <span>{d}</span>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
-      <div className="space-y-2 pt-2 border-t border-slate-300/60">
-        <span className="font-black text-[11px] uppercase tracking-wider text-slate-700 block">
-          PER-STREAM EVIDENCE
-        </span>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {/* Spatial Metric */}
-          <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs space-y-1">
-            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">
-              SPATIAL (RGB + Laplacian)
+      {/* Per-Stream Metrics (Percentage Only) */}
+      <div className="space-y-2 text-left">
+        {/* 1. Spatial Stream */}
+        <div className="bg-white rounded-2xl p-3 sm:p-3.5 border border-slate-200 shadow-2xs flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block leading-tight">
+              SPATIAL STREAM
             </span>
-            <span className="text-2xl font-black text-slate-900 block font-mono">
-              {spatialPct}%
-            </span>
-            <span className="text-[10px] text-slate-500 font-medium block">
-              {spatialPct > 50 ? "Boundary artifact" : "Consistent edge gradients"}
+            <span className="text-xs font-bold text-slate-800">
+              RGB + Laplacian Edges
             </span>
           </div>
+          <span className="text-lg font-black text-slate-900 font-mono">
+            {spatialPct}%
+          </span>
+        </div>
 
-          {/* Noise / Splice Metric */}
-          <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs space-y-1">
-            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">
-              NOISE / SPLICE (Noiseprint)
+        {/* 2. Noise / Splice Stream */}
+        <div className="bg-white rounded-2xl p-3 sm:p-3.5 border border-slate-200 shadow-2xs flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block leading-tight">
+              NOISEPRINT STREAM
             </span>
-            <span className="text-2xl font-black text-slate-900 block font-mono">
-              {noisePct}%
-            </span>
-            <span className="text-[10px] text-slate-500 font-medium block">
-              {isSpliced ? "PRNU & noise mismatch" : "Uniform camera sensor noise"}
+            <span className="text-xs font-bold text-slate-800">
+              Sensor Noise Inconsistency
             </span>
           </div>
+          <span className="text-lg font-black text-slate-900 font-mono">
+            {noisePct}%
+          </span>
+        </div>
 
-          {/* Frequency Metric */}
-          <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs space-y-1">
-            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">
-              FREQUENCY
+        {/* 3. Frequency Stream */}
+        <div className="bg-white rounded-2xl p-3 sm:p-3.5 border border-slate-200 shadow-2xs flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block leading-tight">
+              FREQUENCY STREAM
             </span>
-            <span className="text-2xl font-black text-slate-900 block font-mono">
-              {frequencyPct}%
-            </span>
-            <span className="text-[10px] text-slate-500 font-medium block">
-              {frequencyPct > 50 ? "High DCT deviation" : "Standard DCT distribution"}
+            <span className="text-xs font-bold text-slate-800">
+              8x8 Block-DCT Spectral
             </span>
           </div>
+          <span className="text-lg font-black text-slate-900 font-mono">
+            {frequencyPct}%
+          </span>
         </div>
       </div>
     </div>

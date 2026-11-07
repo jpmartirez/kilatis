@@ -9,7 +9,6 @@ import { StoredResultsPayload, ProbBarItem, VerdictCardData } from "@/types/resu
 import { ReportCaseData } from "@/types/report";
 import { ResultsHeader } from "@/components/results/results-header";
 import { EvidenceViewport } from "@/components/results/evidence-viewport";
-import { PerStreamEvidence } from "@/components/results/per-stream-evidence";
 import { ResultsSidebar } from "@/components/results/results-sidebar";
 import { ReportSelectionModal } from "@/components/results/report-selection-modal";
 
@@ -187,10 +186,10 @@ export default function ResultsPage() {
           onNewAnalysis={handleNewAnalysis}
         />
 
-        {/* 2. Main Grid: Left Viewport & Right Sidebar */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-          {/* Left Column: Visualizer Viewport + Findings & Per-Stream Evidence */}
-          <main className="lg:col-span-8 space-y-4">
+        {/* 2. Main 2-Grid Setup: Left (Sticked / Not Movable) & Right (Movable / Scrollable) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          {/* Left Column: Sticked / Not Movable Evidence Viewport */}
+          <main className="lg:col-span-7 lg:sticky lg:top-4 self-start">
             <EvidenceViewport
               currentItem={currentItem}
               items={data.items}
@@ -208,28 +207,26 @@ export default function ResultsPage() {
               investigatorName={data.investigatorName}
               caseNotes={data.caseNotes}
             />
+          </main>
 
-            <PerStreamEvidence
-              result={currentResult}
+          {/* Right Column: Movable / Scrollable Analysis Console */}
+          <div className="lg:col-span-5">
+            <ResultsSidebar
+              verdictData={verdictData}
+              probBars={probBars}
+              caseNumber={data.caseNumber}
+              caseTitle={data.caseTitle}
+              investigatorName={data.investigatorName}
+              caseNotes={data.caseNotes}
+              currentItem={currentItem}
+              currentResult={currentResult}
               spatialPct={spatialPct}
               noisePct={noisePct}
               frequencyPct={frequencyPct}
               isSpliced={Boolean(isCurrentSpliced)}
+              onGenerateReport={() => setIsReportModalOpen(true)}
             />
-          </main>
-
-          {/* Right Column: Fixed Forensic Report Sidebar */}
-          <ResultsSidebar
-            verdictData={verdictData}
-            probBars={probBars}
-            caseNumber={data.caseNumber}
-            caseTitle={data.caseTitle}
-            investigatorName={data.investigatorName}
-            caseNotes={data.caseNotes}
-            currentItem={currentItem}
-            currentResult={currentResult}
-            onGenerateReport={() => setIsReportModalOpen(true)}
-          />
+          </div>
         </div>
       </div>
 
