@@ -35,6 +35,7 @@ export interface ProbBarItem {
   label: string;
   val: number;
   height: number;
+  threshold?: number;
 }
 
 export interface VerdictCardData {

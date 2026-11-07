@@ -135,8 +135,8 @@ export default function ResultsPage() {
 
   const probBars: ProbBarItem[] = [
     { label: "Authentic", val: pAuth, height: Math.round(pAuth * 100) },
-    { label: "Traditional Spliced", val: pTradSplice, height: Math.round(pTradSplice * 100) },
-    { label: "AI-Generated / Deepfake", val: pAiDeepfake, height: Math.round(pAiDeepfake * 100) },
+    { label: "Traditional Spliced", val: pTradSplice, height: Math.round(pTradSplice * 100), threshold: 0.4500 },
+    { label: "AI-Generated / Deepfake", val: pAiDeepfake, height: Math.round(pAiDeepfake * 100), threshold: 0.5422 },
   ];
 
   // Verdict Presentation

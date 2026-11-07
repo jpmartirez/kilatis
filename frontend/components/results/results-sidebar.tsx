@@ -42,13 +42,13 @@ export const ResultsSidebar: React.FC<ResultsSidebarProps> = ({
       {/* 1. Verdict Card */}
       <VerdictCard verdictData={verdictData} />
 
-      {/* Confidence level and top evidence from the learned decision layer */}
-      <DecisionBasisCard result={currentResult} />
-
-      {/* 2. Class Probability Bar Chart */}
+      {/* 2. Class Probability Horizontal Bar Chart (Under Verdict Section) */}
       <ClassProbabilityCard probBars={probBars} />
 
-      {/* 3. Generate Report Button */}
+      {/* 3. Decision Basis Card */}
+      <DecisionBasisCard result={currentResult} />
+
+      {/* 4. Generate Report Button */}
       <div className="pt-1">
         <button
           type="button"
