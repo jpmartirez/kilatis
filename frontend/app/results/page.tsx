@@ -176,20 +176,22 @@ export default function ResultsPage() {
   const verdictData = getVerdictCard();
 
   return (
-    <div className="min-h-screen w-full bg-[#edf2f7] text-slate-900 font-sans p-3 sm:p-5 lg:p-6 select-none overflow-y-auto">
-      <div className="max-w-7xl mx-auto space-y-4">
+    <div className="min-h-screen lg:h-screen w-full bg-[#edf2f7] text-slate-900 font-sans p-3 sm:p-5 lg:p-6 select-none overflow-y-auto lg:overflow-hidden flex flex-col">
+      <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col gap-4 min-h-0">
         {/* 1. Header Information Capsule */}
-        <ResultsHeader
-          filename={currentResult.filename}
-          investigatorName={data.investigatorName}
-          formattedDate={formattedDate}
-          onNewAnalysis={handleNewAnalysis}
-        />
+        <div className="shrink-0">
+          <ResultsHeader
+            filename={currentResult.filename}
+            investigatorName={data.investigatorName}
+            formattedDate={formattedDate}
+            onNewAnalysis={handleNewAnalysis}
+          />
+        </div>
 
         {/* 2. Main 2-Grid Setup: Left (Sticked / Not Movable) & Right (Movable / Scrollable) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
           {/* Left Column: Sticked / Not Movable Evidence Viewport */}
-          <main className="lg:col-span-7 lg:sticky lg:top-4 self-start">
+          <main className="lg:col-span-7 h-fit self-start shrink-0">
             <EvidenceViewport
               currentItem={currentItem}
               items={data.items}
@@ -210,7 +212,7 @@ export default function ResultsPage() {
           </main>
 
           {/* Right Column: Movable / Scrollable Analysis Console */}
-          <div className="lg:col-span-5">
+          <div className="lg:col-span-5 h-full lg:overflow-y-auto lg:pr-1.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-track]:bg-transparent">
             <ResultsSidebar
               verdictData={verdictData}
               probBars={probBars}
