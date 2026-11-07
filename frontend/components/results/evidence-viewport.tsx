@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
 	ZoomIn,
 	ZoomOut,
@@ -10,8 +10,10 @@ import {
 	ChevronLeft,
 	ChevronRight,
 	SplitSquareVertical,
+	Info,
 } from "lucide-react";
 import { StoredResultItem } from "@/types/results";
+import { MetadataModal } from "./metadata-modal";
 
 interface EvidenceViewportProps {
 	currentItem: StoredResultItem;
@@ -25,6 +27,10 @@ interface EvidenceViewportProps {
 	onZoomIn: () => void;
 	onZoomOut: () => void;
 	onZoomReset: () => void;
+	caseNumber?: string;
+	caseTitle?: string;
+	investigatorName?: string;
+	caseNotes?: string;
 }
 
 export const EvidenceViewport: React.FC<EvidenceViewportProps> = ({
@@ -37,24 +43,41 @@ export const EvidenceViewport: React.FC<EvidenceViewportProps> = ({
 	onZoomIn,
 	onZoomOut,
 	onZoomReset,
+	caseNumber,
+	caseTitle,
+	investigatorName,
+	caseNotes,
 }) => {
+	const [isMetadataModalOpen, setIsMetadataModalOpen] = useState(false);
 	const currentResult = currentItem.result;
 
 	const isSpliced = hasHeatmap && Boolean(currentResult.mask_base64);
 
 	return (
 		<div className="bg-[#e4ebf3] rounded-3xl p-4 sm:p-5 border border-slate-300/80 shadow-xs space-y-3">
-			<div className="flex items-center justify-between">
-				{isSpliced ? (
-					<div className="bg-white px-3.5 py-1.5 rounded-full shadow-2xs border border-slate-200 flex items-center gap-2 text-xs font-bold text-slate-800">
-						<SplitSquareVertical className="w-3.5 h-3.5 text-blue-600" />
-						<span>Comparative View: Questioned Asset &amp; Heatmap</span>
-					</div>
-				) : (
-					<div className="bg-white px-3.5 py-1.5 rounded-full shadow-2xs border border-slate-200 flex items-center gap-2 text-xs font-bold text-slate-800">
-						<span>Questioned Asset</span>
-					</div>
-				)}
+			<div className="flex items-center justify-between gap-3">
+				<div className="flex items-center gap-2 flex-wrap">
+					{isSpliced ? (
+						<div className="bg-white px-3.5 py-1.5 rounded-full shadow-2xs border border-slate-200 flex items-center gap-2 text-xs font-bold text-slate-800">
+							<SplitSquareVertical className="w-3.5 h-3.5 text-blue-600" />
+							<span>Comparative View: Questioned Asset &amp; Heatmap</span>
+						</div>
+					) : (
+						<div className="bg-white px-3.5 py-1.5 rounded-full shadow-2xs border border-slate-200 flex items-center gap-2 text-xs font-bold text-slate-800">
+							<span>Questioned Asset</span>
+						</div>
+					)}
+
+					<button
+						type="button"
+						onClick={() => setIsMetadataModalOpen(true)}
+						className="bg-[#1e3a8a] hover:bg-[#172554] text-white px-3.5 py-1.5 rounded-full shadow-xs border border-blue-900/60 flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer active:scale-[0.98]"
+						title="View Image Metadata"
+					>
+						<Info className="w-3.5 h-3.5 text-blue-200" />
+						<span>View Metadata</span>
+					</button>
+				</div>
 
 				{items.length > 1 && (
 					<div className="flex items-center gap-2 text-xs font-bold text-slate-600">
@@ -189,6 +212,17 @@ export const EvidenceViewport: React.FC<EvidenceViewportProps> = ({
 					})}
 				</div>
 			)}
+
+			<MetadataModal
+				isOpen={isMetadataModalOpen}
+				onClose={() => setIsMetadataModalOpen(false)}
+				currentItem={currentItem}
+				currentResult={currentResult}
+				caseNumber={caseNumber}
+				caseTitle={caseTitle}
+				investigatorName={investigatorName}
+				caseNotes={caseNotes}
+			/>
 		</div>
 	);
 };

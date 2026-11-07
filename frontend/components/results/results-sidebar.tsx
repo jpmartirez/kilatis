@@ -6,18 +6,17 @@ import { FileText } from "lucide-react";
 import { VerdictCard } from "./verdict-card";
 import { DecisionBasisCard } from "./decision-basis-card";
 import { ClassProbabilityCard } from "./class-probability-card";
-import { MetadataCard } from "./metadata-card";
 import { ImageAnalysisResult } from "@/lib/api";
 import { ProbBarItem, StoredResultItem, VerdictCardData } from "@/types/results";
 
 interface ResultsSidebarProps {
   verdictData: VerdictCardData;
   probBars: ProbBarItem[];
-  caseNumber: string;
-  caseTitle: string;
-  investigatorName: string;
-  caseNotes: string;
-  currentItem: StoredResultItem;
+  caseNumber?: string;
+  caseTitle?: string;
+  investigatorName?: string;
+  caseNotes?: string;
+  currentItem?: StoredResultItem;
   currentResult: ImageAnalysisResult;
   onGenerateReport?: () => void;
 }
@@ -25,11 +24,6 @@ interface ResultsSidebarProps {
 export const ResultsSidebar: React.FC<ResultsSidebarProps> = ({
   verdictData,
   probBars,
-  caseNumber,
-  caseTitle,
-  investigatorName,
-  caseNotes,
-  currentItem,
   currentResult,
   onGenerateReport,
 }) => {
@@ -54,17 +48,7 @@ export const ResultsSidebar: React.FC<ResultsSidebarProps> = ({
       {/* 2. Class Probability Bar Chart */}
       <ClassProbabilityCard probBars={probBars} />
 
-      {/* 3. Metadata Card */}
-      <MetadataCard
-        caseNumber={caseNumber}
-        caseTitle={caseTitle}
-        investigatorName={investigatorName}
-        caseNotes={caseNotes}
-        currentItem={currentItem}
-        currentResult={currentResult}
-      />
-
-      {/* 4. Generate Report Button */}
+      {/* 3. Generate Report Button */}
       <div className="pt-1">
         <button
           type="button"

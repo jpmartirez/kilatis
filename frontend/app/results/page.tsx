@@ -203,6 +203,10 @@ export default function ResultsPage() {
               onZoomIn={() => setZoomLevel((prev) => Math.min(prev + 0.25, 3))}
               onZoomOut={() => setZoomLevel((prev) => Math.max(prev - 0.25, 0.5))}
               onZoomReset={() => setZoomLevel(1)}
+              caseNumber={data.caseNumber}
+              caseTitle={data.caseTitle}
+              investigatorName={data.investigatorName}
+              caseNotes={data.caseNotes}
             />
 
             <PerStreamEvidence
