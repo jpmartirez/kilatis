@@ -58,7 +58,7 @@ image = (
 # A new deploy resets the autoscaler back to these values.
 @app.function(
     image=image,
-    gpu="L4",
+    gpu="A100",
     scaledown_window=300,
     timeout=300,
 )

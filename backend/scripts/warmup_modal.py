@@ -10,7 +10,7 @@ Steps:
   4. Check /api/system/ready and print the result.
 
 Usage (Git Bash, from the backend folder):
-  KILATIS_USERNAME=<your username> uv run python scripts/warmup_modal.py
+  KILATIS_USERNAME=investigator_alpha uv run python scripts/warmup_modal.py
   The password is asked for (hidden), or read from KILATIS_PASSWORD.
 
 The backend URL comes from --url, KILATIS_API_URL, or NEXT_PUBLIC_API_URL in frontend/.env.
